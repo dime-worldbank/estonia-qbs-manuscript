@@ -24,7 +24,12 @@
 
 
 	  if "`c(username)'" == "meyhar"	 {			// MM
-		global projectfolder	"/Users/meyhar/Box/Estonia ECM/Research outputs/qbs manuscript"
+	  
+		// Box
+		global projectfolder	"/Users/meyhar/Box/Estonia ECM/Research outputs/qbs manuscript"	
+		
+		//Github
+		global github			"/Users/meyhar/Documents/GitHub/estonia-qbs-manuscript/qbs-manuscript"
 		
 		
 	  }
@@ -32,10 +37,13 @@
 		global projectfolder	"/Users/bbdaniels/Box/Estonia ECM/Research outputs/qbs manuscript"
 		}
 		
-		// Root globals
+		// Root globals - Box
 		
 		global datawork 		"${projectfolder}/DataWork"
 		global data				"${datawork}/raw"
-		global code				"${datawork}/code"
 		global output			"${datawork}/output"
 		global constructed		"${datawork}/construct"
+		
+		// Root globals - Github
+		
+		global code 			"${github}/DataWork/code"
