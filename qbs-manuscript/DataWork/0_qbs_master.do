@@ -26,7 +26,7 @@
 	  if "`c(username)'" == "meyhar"	 {			// MM
 	  
 		// Box
-		global projectfolder	"/Users/meyhar/Box/Estonia ECM/Research outputs/qbs manuscript"	
+		global projectfolder	"/Users/meyhar/Box/Estonia ECM/Research outputs/qbs-manuscript"	
 		
 		//Github
 		global github			"/Users/meyhar/Documents/GitHub/estonia-qbs-manuscript/qbs-manuscript"
@@ -34,7 +34,7 @@
 		
 	  }
 	  if "`c(username)'" == "bbdaniels"	 {				// BBD
-		global projectfolder	"/Users/bbdaniels/Box/Estonia ECM/Research outputs/qbs manuscript"
+		global projectfolder	"/Users/bbdaniels/Box/Estonia ECM/Research outputs/qbs-manuscript"
 		}
 		
 		// Root globals - Box
