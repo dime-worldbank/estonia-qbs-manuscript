@@ -2,7 +2,7 @@
 
 	// Load the QBS data
 
-	use "$data/domainii_qbs.dta", clear
+	use "${data}/domainii_qbs.dta", clear
 
 	// Rename the variables
 	ren targetgroup_diab_monitoring tgtgroup_diab_monitor
