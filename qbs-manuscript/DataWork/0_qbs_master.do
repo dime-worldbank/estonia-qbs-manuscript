@@ -3,15 +3,15 @@
 
 	/* This master do file sets all the globas, files paths for all users,
 		runs all the pprocesses for the analysis of the QBS manuscript
-		
+
 	*/
-	
+
 	// Clear memory
-		
+
 		clear all
-		set more off	
-	
-	
+		set more off
+
+
 	// File paths for users
 
 		 *Standardize settings accross users
@@ -24,26 +24,26 @@
 
 
 	  if "`c(username)'" == "meyhar"	 {			// MM
-	  
+
 		// Box
-		global projectfolder	"/Users/meyhar/Box/Estonia ECM/Research outputs/qbs-manuscript"	
-		
+		global projectfolder	"/Users/meyhar/Box/Estonia ECM/Research outputs/qbs-manuscript"
+
 		//Github
 		global github			"/Users/meyhar/Documents/GitHub/estonia-qbs-manuscript/qbs-manuscript"
-		
-		
+
+
 	  }
 	  if "`c(username)'" == "bbdaniels"	 {				// BBD
 		global projectfolder	"/Users/bbdaniels/Box/Estonia ECM/Research outputs/qbs-manuscript"
 		}
-		
+
 		// Root globals - Box
-		
-		global datawork 		"${projectfolder}/DataWork"
-		global data				"${datawork}/raw"
-		global output			"${datawork}/output"
+
+		global datawork 			"${projectfolder}/DataWork"
+		global data						"${datawork}/raw"
+		global output					"${datawork}/output"
 		global constructed		"${datawork}/construct"
-		
+
 		// Root globals - Github
-		
+
 		global code 			"${github}/DataWork/code"
