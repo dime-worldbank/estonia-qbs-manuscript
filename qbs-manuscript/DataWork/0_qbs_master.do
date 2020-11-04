@@ -42,7 +42,7 @@
 		global datawork 			"${projectfolder}/DataWork"
 		global data						"${datawork}/raw"
 		global output					"${datawork}/output"
-		global constructed		"${datawork}/construct"
+		global constructed		"${datawork}/constructed"
 
 		// Root globals - Github
 

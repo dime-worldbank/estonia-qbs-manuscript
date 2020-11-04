@@ -18,4 +18,4 @@
 										tgtgroup_hypothyreosis covered_hypothyreosis coveragert_hypothyreosis, 						///
 										statistics(mean p50 sd min max) columns(statistics)
 	//esttab using "${output}/table_summary_indicator.csv", cells("mean p50 sd min max") nomtitle nonumber label replace
-	esttab using "${output}/table_summary_indicator.tex", cells("mean(fmt(%9.2f)) p50 sd min max") nomtitle nonumber label replace
+	esttab using "${output}/table_summary_indicator.tex", cells("mean(fmt(%9.0f)) p50(fmt(%9.0g)) sd(fmt(%9.0f)) min(fmt(%9.0g)) max(fmt(%9.0g))") nomtitle nonumber label replace
