@@ -267,12 +267,12 @@ use "${constructed}/qbs_shrinkage.dta", clear
 
     tw ///
       (scatter `i'_js `i'_coveragert ///
-        , mlwidth(none) msize(0.6) mcolor(black%60) mlc(none)) ///
+        , mlwidth(none) msize(0.3) mcolor(black%60) mlc(none)) ///
       (scatter `i'_nb `i'_coveragert ///
-        , mlwidth(none) msize(0.6) mcolor(red%60) mlc(none)) ///
+        , mlwidth(none) msize(0.3) mcolor(red%60) mlc(none)) ///
       (function x , lp(dash) lw(thin) lc(gray)) ///
     , xtit("Raw Score") legend(on order(1 "James-Stein" 2 "Need-Based")) ///
-      title("`label'") nodraw ///
+      title("`label'" , size(small)) nodraw ///
       xlab(0 "0%" .25 "25%" .5 "50%" .75 "75%" 1 "100%") ///
       ylab(0 "0%" .25 "25%" .5 "50%" .75 "75%" 1 "100%")
       
@@ -281,7 +281,8 @@ use "${constructed}/qbs_shrinkage.dta", clear
     
    }
 
- grc1leg `graphs' , altshrink ysize(8)
+ grc1leg `graphs' , c(3) 
+   graph draw, ysize(6)
 
 
 /////////////////////////////////////////////////////////////////////////////

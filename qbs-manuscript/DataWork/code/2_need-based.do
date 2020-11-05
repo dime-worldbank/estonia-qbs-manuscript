@@ -25,12 +25,12 @@ use "${constructed}/qbs_shrinkage.dta", clear
 foreach indicator of local indicators {
 
   egen num_`indicator'_m  = mean(`indicator'_covered)       // mean(covered)
-  gen num_`indicator'_2   = num_`indicator'_m * .5          // mean(covered) * 0.5
+  gen num_`indicator'_2   = num_`indicator'_m        // mean(covered) * 0.5
   gen num_`indicator'     = `indicator'_covered + num_`indicator'_2   // new numerator
 
 
   egen den_`indicator'_m  = mean(`indicator'_tgtgroup)    // mean(population)
-  gen den_`indicator'_2   = den_`indicator'_m * .5        // mean(popn) * 0.5
+  gen den_`indicator'_2   = den_`indicator'_m       // mean(popn) * 0.5
   gen den_`indicator'     = `indicator'_tgtgroup + den_`indicator'_2      // new denominator
 
   gen `indicator'_nb  = (num_`indicator' / den_`indicator')              // Adjusted Coverage
