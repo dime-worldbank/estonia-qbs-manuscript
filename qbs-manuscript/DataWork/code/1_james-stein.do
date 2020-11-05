@@ -12,14 +12,14 @@ syntax anything
   preserve
     // Calculate mean for unit
     gen `mu' = covered_`anything'/tgtgroup_`anything'
-    
+
     // Total units
     local k = `c(N)'
 
-    // Create fake subdata
+    // Create fake subdata, expand provider level to patient level
     expand tgtgroup_`anything'
     bys `id' : gen `cov' = (_n <= covered_`anything')
-    
+
     // Get SEM -> variance for each unit
     collapse (sem) `cov' (firstnm) covered_`anything' tgtgroup_`anything' `mu' , by(`id')
     gen `s' = `cov'^2
@@ -29,25 +29,42 @@ syntax anything
     gen `dev' = `mu' - `m'
     egen `ss' = sum(`dev'^2)
     gen `c' = max(0 , 1 - ((`k'-2)*`s') / `ss')
-    
+
     // JS estimator
     gen js_`anything' = (`m') + `c' * (`mu' - `m')
-    
+
     tempfile calc
       save `calc' , replace
-      
+
   restore
 
   qui merge 1:1 `id' using `calc' , nogen
 
 end
 
-// Test
-use "/Users/bbdaniels/Box/Estonia ECM/Research outputs/qbs manuscript/DataWork/raw/domainii_qbs.dta", clear
+// Apply on QBS scores
+use "${constructed}/qbs-domainii_clean.dta", clear
 
-cap drop js_diab_treat
-js diab_treat
 
+local indicators diab_monitor diab_treat hyp1_monitor hyp1_treat      ///
+                  hyp2_monitor hyp2_treat hyp3_monitor                ///
+                  infarction infarction_treat1 infarction_treat2      ///
+                  hypothyreosis
+
+foreach i of local indicators {
+
+  replace coveragert_`i' = coveragert_`i'/100
+
+  cap drop js_`i'
+  js `i'
+}
+
+  save "${constructed}/qbs_shrinkage.dta", replace
+
+
+
+
+/*
 gen check = coveragert_diab_treat/100
 
 su check
@@ -56,5 +73,5 @@ su check
 gen shrinkage = abs((check - js_diab_treat)/(check - d))
 
 scatter  shrinkage tgtgroup_diab_treat
-
+*/
 // End of dofile
