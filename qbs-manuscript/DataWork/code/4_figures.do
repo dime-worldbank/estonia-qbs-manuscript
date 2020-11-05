@@ -171,32 +171,20 @@ tw ///
  // LOWESS ON COVERAGE AND NEED BY INDICATOR
 /////////////////////////////////////////////////////////////////////////////
 
-   use "${constructed}/qbs-domainii_clean.dta", clear
+ use "${constructed}/qbs-domainii_clean.dta", clear
 
- local indicators     diab_monitor   ///
-              diab_treat     ///
-              hyp1_monitor   ///
-              hyp2_monitor   ///
-              hyp3_monitor   ///
-              hyp1_treat     ///
-              hyp2_treat     ///
-              infarction     ///
-              infarction_treat1      ///
-              infarction_treat2     ///
-              hypothyreosis
-
-  local  diab_monitor_title    "Diabetes Type II: Monitoring"
-  local  diab_treat_title     "Diabetes Type II: Treatment"
-  local  hyp1_monitor_title     "Hypertension Low Risk: Monitoring"
-  local  hyp2_monitor_title    "Hypertension Med Risk: Monitoring"
-  local  hyp3_monitor_title     "Hypertension High Risk: Monitoring"
-  local  hyp1_treat_title      "Hypertension All Risk: Treatment"
-  local  hyp2_treat_title     "Hypertension Med-High Risk: Treatment"
-  local  infarction_title      "Myocardial Infarction: Monitoring"
-  local  infarction_treat1_title   "Myocardial Infarction Beta Blockers: Treatment"
-  local  infarction_treat2_title  "Myocardial Infarction Statins: Treatment"
-  local  hypothyreosis_title    "Hypothyroidism: Monitoring"
-
+ local indicators   ///
+   diab_monitor   ///
+   diab_treat     ///
+   hyp1_monitor   ///
+   hyp2_monitor   ///
+   hyp3_monitor   ///
+   hyp1_treat     ///
+   hyp2_treat     ///
+   infarction     ///
+   infarction_treat1      ///
+   infarction_treat2     ///
+   hypothyreosis
 
   local yline_diab_monitor    76
   local yline_diab_treat      70
@@ -210,31 +198,25 @@ tw ///
   local yline_infarction_treat2   70
   local yline_hypothyreosis      90
 
-
+  local graphs ""
   foreach i of local indicators  {
+    
+    local label : var label `i'_coveragert
+    local label = subinstr("`label'"," - Coverage Ratio","",.)
 
-    lowess coveragert_`i'  tgtgroup_`i' if coveragert_`i', yline(`yline_`i'', lcolor(black)) msize(0.7) mcolor(grey%30) mlwidth(none) lineopts(lcolor(red) lwidth(thick)) ylab(0(20)100, angle(0) nogrid)    ///
-    tit("``i'_title'", size(medsmall) color(black)) xtit("") ytit("") note("")     ///
-    subtit("``i'_sub'")    ///
-    graphregion(color(white)) saving(`i'.gph, replace)
-
+    lowess `i'_coveragert  `i'_tgtgroup ///
+      , yline(`yline_`i'', lcolor(black)) msize(0.7) mcolor(black%30) mlc(none) ///
+      lineopts(lcolor(red) lwidth(thick)) ylab(0(20)100, angle(0) nogrid)    ///
+    tit("`label'", size(small) color(black)) xtit("") ytit("") note("")  nodraw
+    
+    graph save "${output}/`i'.gph" , replace
+    local graphs "`graphs' ${output}/`i'.gph"
+    
     }
+    
+    gr combine `graphs' , c(3) ysize(6)
 
-
-    gr combine       diab_monitor.gph ///
-              diab_treat.gph     ///
-              hyp1_monitor.gph   ///
-              hyp2_monitor.gph   ///
-              hyp3_monitor.gph    ///
-              hyp1_treat.gph     ///
-              hyp2_treat.gph     ///
-              infarction.gph     ///
-              infarction_treat1.gph     ///
-              infarction_treat2.gph     ///
-              hypothyreosis.gph, col(3) xsize(8) ysize(8) graphregion(color(white))
-
-
-      gr export "${output}/fig_4_lowess_indicator.pdf", replace
+    gr export "${output}/fig_4_lowess_indicator.pdf", replace
 
 //////////////////////////////////////////////////////////////////////////////
     // FIGURE 4.
@@ -260,6 +242,7 @@ use "${constructed}/qbs_shrinkage.dta", clear
     hypothyreosis
     
   // Graph
+  local graphs ""
   foreach i of local indicators {
     
     local label : var label `i'_coveragert
