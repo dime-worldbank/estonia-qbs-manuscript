@@ -16,16 +16,16 @@ syntax anything
 
   preserve
     // Calculate mean for unit
-    gen `mu' = covered_`anything'/tgtgroup_`anything'
+    gen `mu' = `anything'_covered/`anything'_tgtgroup
 
     // Total units
     local k = `c(N)'
 
     // Create fake subdata, expand provider level to patient level
-    expand tgtgroup_`anything'
+    expand `anything'_tgtgroup
     
     // Patient-level coverage imputed
-    bys `id' : gen `cov' = (_n <= covered_`anything')
+    bys `id' : gen `cov' = (_n <= `anything'_covered)
     
     // Patient-level deviations from grand mean
     egen `mean_coverage' = mean(`cov')
@@ -33,9 +33,9 @@ syntax anything
 
     // Get standard deviation of the mean for each unit
     collapse (sum) `indiv_deviation' ///
-      (firstnm) covered_`anything' tgtgroup_`anything' `mu' , by(`id')
+      (firstnm) `anything'_covered `anything'_tgtgroup `mu' , by(`id')
       
-      gen `s' = `indiv_deviation' / sqrt(tgtgroup_`anything')
+      gen `s' = `indiv_deviation' / sqrt(`anything'_tgtgroup)
 
     // Calculate shrinkage
     egen `m' = mean(`mu')
@@ -45,7 +45,7 @@ syntax anything
     gen `c' = max(0 , 1 - ((`k'-2)*`s') / `ss')
     
     // JS estimator
-    gen js_`anything' = (`mu') + `c' * (`m' - `mu')
+    gen `anything'_js = (`mu') + `c' * (`m' - `mu')
 
     tempfile calc
       save `calc' , replace
@@ -66,14 +66,20 @@ use "${constructed}/qbs-domainii_clean.dta", clear
 
   qui foreach i of local indicators {
 
-    replace coveragert_`i' = coveragert_`i'/100
+    replace `i'_coveragert = `i'_coveragert/100
 
     cap drop js_`i'
     js `i'
+    
+    local label : var lab `i'_coveragert
+      local label = substr("`label'",1,strpos("`label'"," - "))
+      local label = "`label'" + " -  James-Stein"
+      lab var `i'_js "`label'"
   }
 
 // 3. Output estimated performance to "${constructed}/qbs_shrinkage.dta"
 
   save "${constructed}/qbs_shrinkage.dta", replace
+   use "${constructed}/qbs_shrinkage.dta", clear
 
 // End of dofile
