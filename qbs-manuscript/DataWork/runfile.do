@@ -14,17 +14,17 @@
   
   if "`c(username)'" == "bbdaniels"   {        // BBD
     global projectfolder  "/Users/bbdaniels/Box/Estonia ECM/Research outputs/qbs-manuscript"
-    global github  "/Users/bbdaniels/Box/GitHub/estonia-qbs-manuscript/qbs-manuscript"
+    global github  "/Users/bbdaniels/GitHub/estonia-qbs-manuscript/qbs-manuscript"
   }
 
   // Root globals - Box
   global datawork       "${projectfolder}/DataWork"
-    global data           "${datawork}/raw"
-    global output         "${datawork}/output"
-    global constructed    "${datawork}/constructed"
+    global data         "${datawork}/raw"
+    global constructed  "${datawork}/constructed"
 
   // Root globals - Github
   global code       "${github}/DataWork/code"
+    global output   "${github}/DataWork/output"
 
 /******************************************************************/
 // CODE TO PRODUCE ESTIMATION AND FIGURES/TABLES FOR PAPER
