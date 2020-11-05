@@ -2,14 +2,15 @@
 
 	/////////////////////////////////////////////////////////////////////////
 	// 					FIGURES FOR RESULTS SECTION
-	// 							Section 3.1
-
 	/* This do file makes the following figures
-		1. Figure with histogram and scatter of QBS scores from 2017 and 2018
-		2. Figure with line graphs on QBS score performance from 2017 to 2018
-		3. Distribution of the disease burden across patient population by age
+		1a. Figure with histogram and scatter of QBS scores from 2017 and 2018
+		1b. Figure with line graphs on QBS score performance from 2017 to 2018
+		2. Distribution of the disease burden across patient population by age
+    3. Lowess curve to highlight coverage reduces as population increases
+    4. Comparison of JS and need-based
+    5. Box graph with coverage rates for pca
+    6. Final scores with raw, partial credit and need-based adjustment
 	*/
-	//
 	//////////////////////////////////////////////////////////////////////////
 
 
@@ -24,6 +25,9 @@
 	// FIGURE 1.
 
 	 // HISTOGRAM WITH SCORES + SCATTER
+
+   ////////////////////////////////////////////////////////////////////////
+   //FIGURE 1a.
 
 	 // HISTOGRAM
 	 preserve
@@ -90,7 +94,7 @@
 
 	///////////////////////////////////////////////////////////////////////////
 
-		// FIGURE 2.
+		// FIGURE 1b.
 		// LINE GRAPH
 
 	// Distribution of QBS scores for each provider for 2017 and 2018 only
@@ -139,9 +143,9 @@
 
 	//////////////////////////////////////////////////////////////////////////
 
-		// FIGURE 3.
+		// FIGURE 2.
 		// SCATTER OF DISEASE BURDEN
-
+  /////////////////////////////////////////////////////////////////////////
 	// Distribution of patients with related illnesses by QBS Score
 
 
@@ -167,7 +171,11 @@
 
    restore
 
-	 // FIGURE 4.LOWESS ON COVERAGE AND NEED BY INDICATOR
+  /////////////////////////////////////////////////////////////////////////////
+	 // FIGURE 3.
+
+   // LOWESS ON COVERAGE AND NEED BY INDICATOR
+  /////////////////////////////////////////////////////////////////////////////
 
 	 	use "${constructed}/qbs-domainii_clean.dta", clear
 
@@ -234,66 +242,54 @@
 
 				gr export "${output}/fig_4_lowess_indicator.pdf", replace
 
+  //////////////////////////////////////////////////////////////////////////////
+      // FIGURE 4.
 
-	 /* FIGURE 5 -- Will move here after finalizing
-	 // JAMES STEIN V NEED-BASED
+      // JS and NEED-BASED ESTIMATOR
 
-	 // Plot JS and need-based
+      // Currently in 2_need_based_estimation.do, will move after finalizing
+  /////////////////////////////////////////////////////////////////////////////
 
-	 use "${constructed}/qbs_shrinkage.dta", clear
+  /////////////////////////////////////////////////////////////////////////////
+    // FIGURE 5.
 
-	 // Local for indicator names
+    // COVERAGE AND WEIGHT OF INDICATORS
+  /////////////////////////////////////////////////////////////////////////////
 
-	 local indicators 			diab_monitor ///
-	                        diab_treat ///
-													hyp1_monitor 	///
-													hyp2_monitor 	///
-													hyp3_monitor 	///
-													hyp1_treat 		///
-													hyp2_treat 		///
-													infarction 		///
-													infarction_treat1 	///
-													infarction_treat2 		///
-													hypothyreosis
+		label var coveragert_diab_treat 		 "Diabetes Type II: Treatment [12]"
+		label var coveragert_infarction_treat2	 "Myocardial Infarction Statins: Treatment [19]"
+		label var coveragert_infarction_treat1	 "Myocardial Infarction Beta Blockers: Treatment [14]"
+		label var coveragert_hyp2_monitor	     "Hypertension Med Risk: Monitoring [68]"
+		label var coveragert_hyp2_treat			 "Hypertension Med-High Risk Level: Treatment [22]"
+		label var coveragert_hyp3_monitor		 "Hypertension High Risk: Monitoring [66]"
+		label var coveragert_diab_monitor 	 "Diabetes Type II: Monitor [68]"
+		label var coveragert_infarction			 "Myocardial Infarction: Monitoring [68]"
+		label var coveragert_hypothyreosis		 "Hypothyroidism: Monitoring [63]"
+		label var coveragert_hyp1_treat			 "Hypertension All Risk Level: Treatment [22]"
+		label var coveragert_hyp1_monitor		 "Hypertension Low Risk: Monitoring [66]"
 
 
-	local  diab_monitor_title  	"Type-II Diabetes (monitor)"
-	local  diab_treat_title  "Type-II Diabetes (treat)"
-	local  hyp1_monitor_title   "Hypertension-low (monitor)"
-	local  hyp2_monitor_title "Hypertension-medium (monitor)"
-	local  hyp3_monitor_title 	"Hpertension-high (monitor)"
-	local  hyp1_treat_title 	"Hypertension-all risk (treat)"
-	local  hyp2_treat_title 		"Hypertension-medum high risk (treat)"
-	local  infarction_title  "Myocardial infarction (monitor)"
-	local  infarction_treat1_title  "Myocardial infarction (treat-1)"
-	local  infarction_treat2_title  "Myocardial infarction (treat-2)"
-	local  hypothyreosis_title		"Hypothyroidism (monitor)"
 
-	 gen start_point = 0 if _n == 1
-	 replace start_point  = 1 if _n == 2
-	 gen end_point = 0 if _n == 1
-	 replace end_point = 1 if _n == 2
+		graph hbox 		coveragert_diab_treat 			coveragert_infarction_treat1 	///
+						coveragert_infarction_treat2 	coveragert_hyp2_treat			///
+						coveragert_hyp1_treat 			coveragert_hypothyreosis 		///
+						coveragert_hyp3_monitor  		coveragert_hyp1_monitor 		///
+						coveragert_infarction 			coveragert_diab_monitoring 		///
+						coveragert_hyp2_monitor , 										///
+						noout  ascat ylab(0 20 40 60 80 100, nogrid) ytit("") box(1,bfcolor(white) lcolor(black)) graphregion(color(white) lcolor(black)) 	///
+						tit("") note("")
 
-	 foreach i of local indicators {
+		gr display, xsize(8)
 
-	 tw ///
-	 (scatter js_`i' coveragert_`i', mlwidth(none) msize(0.6) mcolor(emerald%60) legend(pos(6) ring(3) col(6) ///
- lab(1 "Raw") lab(2 "Need-based") order(1 2) region(fcolor(white))) legend(subtitle("James-stein estimator vs."))) ///
-	 (scatter js_`i' c_`i', mlwidth(none) msize(0.6) mcolor(red%60)) ///
-	 (line end_point start_point, lcolor(black) yla(, nogrid) graphregion(color(white)) title("``i'_title'", size(med)) ///
-	 saving(`i'.gph, replace))
-}
-	 grc1leg 	diab_monitor.gph ///
-	                        diab_treat.gph ///
-													hyp1_monitor.gph 	///
-													hyp2_monitor.gph 	///
-													hyp3_monitor.gph  	///
-													hyp1_treat.gph 		///
-													hyp2_treat.gph 		///
-													infarction.gph 		///
-													infarction_treat1.gph 		///
-													infarction_treat2.gph 		///
-													hypothyreosis.gph , col(3) xsize(5) ysize(12) graphregion(color(white))
+	gr export "${output_2}/fig_2_pca_weights.png", replace
 
-	*/
+  /////////////////////////////////////////////////////////////////////////////
+  // FIGURE 6.
+
+  // FINAL SCORES PANEL
+  /////////////////////////////////////////////////////////////////////////////
+
+
+
+
 	//////////////// END OF DO FILE ////////////////////////////////////////////

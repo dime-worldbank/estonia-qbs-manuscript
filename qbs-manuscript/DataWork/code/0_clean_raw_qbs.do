@@ -29,7 +29,7 @@
 				tgtgroup_infarction_treat2 covered_infarction_treat2 								///
 				coveragert_infarction_treat2 qbs_infarction_treat2 									///
 				tgtgroup_hypothyreosis covered_hypothyreosis 												///
-				coveragert_hypothyreosis qbs_hypothyreosis qbs_diab_treat
+				coveragert_hypothyreosis qbs_hypothyreosis qbs_diab_treat total_points_domain
 
 	// Label all variables
 

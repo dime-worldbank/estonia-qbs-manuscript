@@ -1,3 +1,16 @@
+
+/////////////////////////////////////////////////////////////////////////
+// 				 JAMES STEIN ESTIMATION
+//
+/* This do file does the following:
+1. Write program to produce James stein estimation
+2. Apply the js estimation on "${constructed}/qbs-domainii_clean.dta"
+3. Output is "${constructed}/qbs_shrinkage.dta"
+*/
+
+//////////////////////////////////////////////////////////////////////////
+
+
 // James-Stein estimators for coverage
 
 
@@ -38,6 +51,7 @@ syntax anything
 
   restore
 
+
   qui merge 1:1 `id' using `calc' , nogen
 
 end
@@ -45,6 +59,7 @@ end
 // Apply on QBS scores
 use "${constructed}/qbs-domainii_clean.dta", clear
 
+js diab_monitor
 
 local indicators diab_monitor diab_treat hyp1_monitor hyp1_treat      ///
                   hyp2_monitor hyp2_treat hyp3_monitor                ///

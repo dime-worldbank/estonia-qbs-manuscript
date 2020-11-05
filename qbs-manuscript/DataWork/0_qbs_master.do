@@ -47,3 +47,25 @@
 		// Root globals - Github
 
 		global code 			"${github}/DataWork/code"
+
+		/******************************************************************/
+    // CODE TO PRODUCE ESTIMATION AND FIGURES/TABLES FOR PAPER
+		/******************************************************************/
+
+		// RUN CLEANING OF QBS SCORES
+		do "${code}/0_clean_raw_qbs.do"
+
+		// RUN STEIN ESTIMATION
+		do "${code}/1_james-stein.do"
+
+		// RUN NEED-BASED ESTIMATION
+		do "${code}/2_need_based_estimation.do"
+
+		// RUN PCA ANALYSIS
+		do "${code}/3_pca.do"
+
+		// RUN ALL FIGURES FOR THE PAPER
+		do "${code}/4_figures_section.do"
+
+		// RUN TABLE 2 FOR THE PAPER
+		do "${code}/5_summary_tables.do"
