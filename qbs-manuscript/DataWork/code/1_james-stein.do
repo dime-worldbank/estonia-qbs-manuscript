@@ -57,34 +57,23 @@ syntax anything
 end
 
 // 2. Calculate the J-S estimators for each indicator in "${constructed}/qbs-domainii_clean.dta"
-use "${constructed}/qbs-domainii_clean.dta", clear
+  use "${constructed}/qbs-domainii_clean.dta", clear
 
-local indicators diab_monitor diab_treat hyp1_monitor hyp1_treat      ///
-                  hyp2_monitor hyp2_treat hyp3_monitor                ///
-                  infarction infarction_treat1 infarction_treat2      ///
-                  hypothyreosis
+  local indicators diab_monitor diab_treat hyp1_monitor hyp1_treat      ///
+    hyp2_monitor hyp2_treat hyp3_monitor                ///
+    infarction infarction_treat1 infarction_treat2      ///
+    hypothyreosis
 
-qui foreach i of local indicators {
+  qui foreach i of local indicators {
 
-  replace coveragert_`i' = coveragert_`i'/100
+    replace coveragert_`i' = coveragert_`i'/100
 
-  cap drop js_`i'
-  js `i'
-}
+    cap drop js_`i'
+    js `i'
+  }
+
+// 3. Output estimated performance to "${constructed}/qbs_shrinkage.dta"
 
   save "${constructed}/qbs_shrinkage.dta", replace
 
-
-
-
-/*
-gen check = coveragert_diab_treat/100
-
-su check
-  gen d = check - `r(mean)'
-
-gen shrinkage = abs((check - js_diab_treat)/(check - d))
-
-scatter  shrinkage tgtgroup_diab_treat
-*/
 // End of dofile
