@@ -256,38 +256,134 @@
     // COVERAGE AND WEIGHT OF INDICATORS
   /////////////////////////////////////////////////////////////////////////////
 
-		label var coveragert_diab_treat 		 "Diabetes Type II: Treatment [12]"
-		label var coveragert_infarction_treat2	 "Myocardial Infarction Statins: Treatment [19]"
-		label var coveragert_infarction_treat1	 "Myocardial Infarction Beta Blockers: Treatment [14]"
-		label var coveragert_hyp2_monitor	     "Hypertension Med Risk: Monitoring [68]"
-		label var coveragert_hyp2_treat			 "Hypertension Med-High Risk Level: Treatment [22]"
-		label var coveragert_hyp3_monitor		 "Hypertension High Risk: Monitoring [66]"
-		label var coveragert_diab_monitor 	 "Diabetes Type II: Monitor [68]"
-		label var coveragert_infarction			 "Myocardial Infarction: Monitoring [68]"
-		label var coveragert_hypothyreosis		 "Hypothyroidism: Monitoring [63]"
-		label var coveragert_hyp1_treat			 "Hypertension All Risk Level: Treatment [22]"
-		label var coveragert_hyp1_monitor		 "Hypertension Low Risk: Monitoring [66]"
+  use "${constructed}/qbs-domainii_clean.dta", clear
+
+		label var coveragert_diab_treat 		 "Type-II Diabetes (treat) [12]"
+		label var coveragert_infarction_treat2	 "Myocardial infarction statins (treat) [19]"
+		label var coveragert_infarction_treat1	 "Myocardial infarction beta blockers (treat) [14]"
+		label var coveragert_hyp2_monitor	     "Hypertension med risk (monitor) [68]"
+		label var coveragert_hyp2_treat			 "Hypertension med-high risk (treat) [22]"
+		label var coveragert_hyp3_monitor		 "Hypertension high risk: (monitor) [66]"
+		label var coveragert_diab_monitor 	 "Type-II Diabetes (monitor) [68]"
+		label var coveragert_infarction			 "Myocardial infarction (monitor) [68]"
+		label var coveragert_hypothyreosis		 "Hypothyroidism (monitor) [63]"
+		label var coveragert_hyp1_treat			 "Hypertension all risk (treat) [22]"
+		label var coveragert_hyp1_monitor		 "Hypertension low risk (monitor) [66]"
 
 
 
 		graph hbox 		coveragert_diab_treat 			coveragert_infarction_treat1 	///
-						coveragert_infarction_treat2 	coveragert_hyp2_treat			///
+						coveragert_infarction_treat2 	coveragert_hyp2_treat 			///
 						coveragert_hyp1_treat 			coveragert_hypothyreosis 		///
 						coveragert_hyp3_monitor  		coveragert_hyp1_monitor 		///
-						coveragert_infarction 			coveragert_diab_monitoring 		///
+						coveragert_infarction 			coveragert_diab_monitor 		///
 						coveragert_hyp2_monitor , 										///
 						noout  ascat ylab(0 20 40 60 80 100, nogrid) ytit("") box(1,bfcolor(white) lcolor(black)) graphregion(color(white) lcolor(black)) 	///
 						tit("") note("")
 
 		gr display, xsize(8)
 
-	gr export "${output_2}/fig_2_pca_weights.png", replace
+	gr export "${output}/fig_5_pca_weights.png", replace
 
   /////////////////////////////////////////////////////////////////////////////
   // FIGURE 6.
 
   // FINAL SCORES PANEL
   /////////////////////////////////////////////////////////////////////////////
+
+  use "${constructed}/qbs_shrinkage.dta", clear
+
+
+  gen total_den = tgtgroup_diab_monitor 		+ 			///
+  						tgtgroup_diab_treat 		    +			///
+  						tgtgroup_hyp1_monitor 			+ 			///
+  						tgtgroup_hyp2_monitor 			+ 			///
+  						tgtgroup_hyp3_monitor 			+ 			///
+  						tgtgroup_hyp1_treat 			+ 			///
+  						tgtgroup_hyp2_treat 			+ 			///
+  						tgtgroup_infarction 			+ 			///
+  						tgtgroup_infarction_treat1 		+ 			///
+  						tgtgroup_infarction_treat2 		+ 			///
+  						tgtgroup_hypothyreosis
+
+  		gen total_num = covered_diab_monitor 		+ 			///
+  						covered_diab_treat 				+ 			///
+  						covered_hyp1_monitor 			+ 			///
+  						covered_hyp2_monitor 			+ 			///
+  						covered_hyp3_monitor 			+ 			///
+  						covered_hyp1_treat 				+ 			///
+  						covered_hyp2_treat 				+ 			///
+  						covered_infarction 				+ 			///
+  						covered_infarction_treat1 		+ 			///
+  						covered_infarction_treat2 		+ 			///
+  						covered_hypothyreosis
+
+  		gen total_cov = total_num/total_den
+
+
+
+
+  	gen y = .
+  	replace y = 0 	if _n == 1
+  	replace y = 384 if _n == 2
+  	replace y = 432 if _n == 3
+  	replace y = 602 if _n == 4
+
+  	// Create points to get shaded area of the graph
+
+  	gen incentive_1	=	384
+  	gen incentive_2 = 	432
+  	gen max_points	=	602
+  	gen max_domain  = 480
+  	gen base		=	0
+
+  	gen xpoint1 		= .
+  	replace xpoint1	=	0	 if _n == 1
+  	replace xpoint1	=	1000 if _n == 2
+  	replace xpoint1 =	2000 if _n == 3
+  	replace xpoint1 = 	8000 if _n == 4
+
+  	// NEW SCORES = New coverage ratio * Weight from PCA
+
+  	tw /// Raw scores
+  			(area max_points max_domain incentive_2 incentive_1 base xpoint1, 		///
+  			color("143 188 143" "143 188 143" "100 149 237" "255 160 122" ) 		///
+  			lcolor(black black black black) lwidth(thin thin thin thin)) 			///
+  			(function y=602, range(0 8000) dropl(4000) base(0) n(1) color(black))	///
+  		(scatter total_points_domain total_den if total_den <= 8000, msize(0.3) 	///
+  		yline(0, lcolor(black)) yline(384, lcolor(black)) yline(432, lcolor(black))  yline(480, lcolor(black)) 	///
+  		mcolor(black) yscale(lstyle(none)) xscale(lstyle(none)) xla(none) legend(off) 	///
+  		yla(0 " 0 " 384 " 384 " 432 " 432 " 480 " 480 " , labsize(medium) angle(0) labgap(4)) xtit(" ")  ///
+  		ytit("") xscale(alt) yscale(alt) graphregion(color(white))), saving(scatter_orig, replace)
+
+
+      tw /// Partial credit
+  			(area max_points max_domain incentive_2 incentive_1 base xpoint1, 		///
+  			color("255 255 255" "143 188 143" "100 149 237" "255 160 122" ) 		///
+  			lcolor(black black black black) lwidth(thin thin thin thin)) 			///
+  			(function y=602, range(0 8000) dropl(4000) base(0) n(1) color(black))	///
+  		(scatter total_prop_score total_den if total_den <= 8000, msize(0.3) 	///
+  		yline(0, lcolor(black)) yline(384, lcolor(black)) yline(432, lcolor(black))  yline(480, lcolor(black)) 	///
+  		mcolor(black) yscale(lstyle(none)) xscale(lstyle(none)) xla(none) legend(off) 	///
+  		yla(0 " 0 " 384 " 384 " 432 " 432 " 480 " 480 " , labsize(med) angle(0) labgap(4)) xtit(" ")  ///
+  		ytick( 0 384 432 480) ytit("") xscale(alt) yscale(alt) graphregion(color(white))), saving(scatter_prop, replace)
+
+
+  		tw /// PCA + Shrinkage
+  			(area max_points max_domain incentive_2 incentive_1 base xpoint1, 		///
+  			color("255 255 255" "143 188 143" "100 149 237" "255 160 122" ) 		///
+  			lcolor(black black black black) lwidth(thin thin thin thin)) ///
+  			(function y=602, range(0 8000) dropl(4000) base(0) n(1) color(black))	///
+  		(scatter new_pca_score total_den if total_den <= 8000, msize(0.3) 			///
+  		yline(0, lcolor(black)) yline(384, lcolor(black)) yline(432, lcolor(black)) yline(480, lcolor(black)) ///
+  		mcolor(black) yscale(lstyle(none)) xscale(lstyle(none)) xla(none)  legend(off) ///
+  		yla(none) xtit(" ")  ytick(0 384 432 480) ytit("")  xscale(alt) 			///
+  		graphregion(color(white))), saving(scatter_new, replace)
+
+
+  		gr combine scatter_orig.gph scatter_prop.gph scatter_new.gph, col(3) imargin(1) xsize(10) graphregion(color(white)) xcommon ycommon
+
+  		gr export "${output}/fig_6_combined_scatter.png", replace
 
 
 

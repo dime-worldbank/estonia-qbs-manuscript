@@ -50,20 +50,10 @@
 
 			}
 
-			//Save dataset with James-Stein and need-based coverage rates
-
-			save "${constructed}/qbs_shrinkage.dta", replace
-
 
 			//3.  PLOT JS AND NEED-BASED
-
-			// FIGURE 5
-	 	 // JAMES STEIN V NEED-BASED
-
-	 	 // Plot JS and need-based
-
-	 	 // Local for indicator names
-
+/*
+		 // Local for indicator names
 	 	 local indicators 			diab_monitor ///
 	 	                        diab_treat ///
 	 													hyp1_monitor 	///
@@ -114,7 +104,7 @@
 	 													infarction_treat1.gph 		///
 	 													infarction_treat2.gph 		///
 	 													hypothyreosis.gph , col(3) xsize(6) ysize(8) graphregion(color(white))
-
+*/
 	// 5. CALCULATE FINAL SCORES
 
 	//-------------------------------------------------------------------//
@@ -123,7 +113,7 @@
 			// 3. NEW SCORES = Need-adjusted coverage * Weight from PCA
 
 
-			gen pca_diab_monitor  = c_diab_monitoring * 68
+			gen pca_diab_monitor  = c_diab_monitor * 68
 			gen pca_diab_treat  = c_diab_treat * 12
 			gen pca_hyp1_m      = c_hyp1_monitor * 66
 			gen pca_hyp2_m      = c_hyp2_monitor * 68
@@ -153,18 +143,18 @@
 		replace new_pca_score = round(new_pca_score)
 
 	// 2. Simple partial credit
-	
-			gen p_diab_monitor = coveragert_diab_monitoring_s * 65
-			gen p_diab_treat  = coveragert_diab_treat_s * 10
-			gen p_hyp1_m      = coveragert_hyp1_monitor_s * 90
-			gen p_hyp2_m      = coveragert_hyp2_monitor_s * 175
-			gen p_hyp3_m      = coveragert_hyp3_monitor_s * 40
-			gen p_hyp1_t      = coveragert_hyp1_treat_s * 5
-			gen p_hyp2_t      = coveragert_hyp2_treat_s * 20
-			gen p_mi          = coveragert_infarction_s * 20
-			gen p_mi1         = coveragert_infarction_treat1_s * 5
-			gen p_mi2         = coveragert_infarction_treat2_s * 5
-			gen p_thyroid     = coveragert_hypothyreosis_s * 45
+
+			gen p_diab_monitor = coveragert_diab_monitor * 65
+			gen p_diab_treat  = coveragert_diab_treat * 10
+			gen p_hyp1_m      = coveragert_hyp1_monitor * 90
+			gen p_hyp2_m      = coveragert_hyp2_monitor * 175
+			gen p_hyp3_m      = coveragert_hyp3_monitor * 40
+			gen p_hyp1_t      = coveragert_hyp1_treat * 5
+			gen p_hyp2_t      = coveragert_hyp2_treat * 20
+			gen p_mi          = coveragert_infarction * 20
+			gen p_mi1         = coveragert_infarction_treat1 * 5
+			gen p_mi2         = coveragert_infarction_treat2 * 5
+			gen p_thyroid     = coveragert_hypothyreosis * 45
 
 			gen total_prop_score = p_diab_monitor + ///
 									p_diab_treat + ///
@@ -179,3 +169,8 @@
 									p_thyroid
 
 		replace total_prop_score = round(total_prop_score)
+
+
+					//Save dataset with James-Stein and need-based coverage rates
+
+					save "${constructed}/qbs_shrinkage.dta", replace
