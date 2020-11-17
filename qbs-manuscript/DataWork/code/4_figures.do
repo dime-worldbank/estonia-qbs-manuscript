@@ -200,7 +200,7 @@ tw ///
 
   local graphs ""
   foreach i of local indicators  {
-    
+
     local label : var label `i'_coveragert
     local label = subinstr("`label'"," - Coverage Ratio","",.)
 
@@ -208,12 +208,12 @@ tw ///
       , yline(`yline_`i'', lcolor(black)) msize(0.7) mcolor(black%30) mlc(none) ///
       lineopts(lcolor(red) lwidth(thick)) ylab(0(20)100, angle(0) nogrid)    ///
     tit("`label'", size(small) color(black)) xtit("") ytit("") note("")  nodraw
-    
+
     graph save "${output}/`i'.gph" , replace
     local graphs "`graphs' ${output}/`i'.gph"
-    
+
     }
-    
+
     gr combine `graphs' , c(3) ysize(6)
 
     gr export "${output}/fig_4_lowess_indicator.pdf", replace
@@ -240,17 +240,17 @@ use "${constructed}/qbs_shrinkage.dta", clear
     infarction_treat1   ///
     infarction_treat2     ///
     hypothyreosis
-    
+
   // Graph
   local graphs ""
   foreach i of local indicators {
-    
+
     local label : var label `i'_coveragert
     local label = subinstr("`label'"," - Coverage Ratio","",.)
 
     tw ///
       (scatter `i'_js `i'_coveragert ///
-        , mlwidth(none) msize(0.3) mcolor(black%60) mlc(none)) ///
+        , mlwidth(none) msize(0.3) mcolor(black%30) mlc(none)) ///
       (scatter `i'_nb `i'_coveragert ///
         , mlwidth(none) msize(0.3) mcolor(red%60) mlc(none)) ///
       (function x , lp(dash) lw(thin) lc(gray)) ///
@@ -258,14 +258,16 @@ use "${constructed}/qbs_shrinkage.dta", clear
       title("`label'" , size(small)) nodraw ///
       xlab(0 "0%" .25 "25%" .5 "50%" .75 "75%" 1 "100%") ///
       ylab(0 "0%" .25 "25%" .5 "50%" .75 "75%" 1 "100%")
-      
+
     graph save "${output}/`i'.gph" , replace
     local graphs "`graphs' ${output}/`i'.gph"
-    
+
    }
 
- grc1leg `graphs' , c(3) 
+ grc1leg `graphs' , c(3)
    graph draw, ysize(6)
+
+   gr export "${output}/js_nb_coverage.png", replace
 
 
 /////////////////////////////////////////////////////////////////////////////

@@ -4,14 +4,14 @@
 
 // Standardize settings accross users
   ieboilstart, version(12.1) // Set the version number to the oldest version
-    `r(version)' // This line is needed to actually set the version 
+    `r(version)' // This line is needed to actually set the version
 
 // File paths for users
   if "`c(username)'" == "meyhar"   {      // MM
     global projectfolder  "/Users/meyhar/Box/Estonia ECM/Research outputs/qbs-manuscript"
     global github      "/Users/meyhar/Documents/GitHub/estonia-qbs-manuscript/qbs-manuscript"
   }
-  
+
   if "`c(username)'" == "bbdaniels"   {        // BBD
     global projectfolder  "/Users/bbdaniels/Box/Estonia ECM/Research outputs/qbs-manuscript"
     global github  "/Users/bbdaniels/GitHub/estonia-qbs-manuscript/qbs-manuscript"
@@ -31,13 +31,13 @@
 /******************************************************************/
 
   // RUN CLEANING OF QBS SCORES
-  do "${code}/0_clean_raw_qbs.do"
+  do "${code}/0_cleaning.do"
 
   // RUN STEIN ESTIMATION
   do "${code}/1_james-stein.do"
 
   // RUN NEED-BASED ESTIMATION
-  do "${code}/2_need_based_estimation.do"
+  do "${code}/2_need-based.do"
 
   // RUN PCA ANALYSIS
   do "${code}/3_pca.do"

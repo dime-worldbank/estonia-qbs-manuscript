@@ -7,24 +7,24 @@
 
 	// In the data :
 
-		// tgtgroup_`indicator'				= underlying population (den)
-		// covered_`indicator'				= achieved population (num)
-		// coveragert_ `indicator' 			= round((num/den)*100)
+		// `indicator'_tgtgroup				= underlying population (den)
+		// `indicator'_covered				= achieved population (num)
+		// `indicator'_coveragert 			= round((num/den)*100)
 
 
 	// COMPONENTS FOR PCA - COVERAGE RATIO FOR EACH INDICATOR
 
-	global pcalist 			coveragert_diab_monitor 				///
-							coveragert_diab_treat 					///
-							coveragert_hyp1_monitor 				///
-							coveragert_hyp2_monitor 				///
-							coveragert_hyp3_monitor 				///
-							coveragert_hyp1_treat 					///
-							coveragert_hyp2_treat 					///
-							coveragert_infarction 					///
-							coveragert_infarction_treat1 			///
-							coveragert_infarction_treat2 			///
-							coveragert_hypothyreosis
+	global pcalist 			diab_monitor_coveragert  ///
+	  diab_treat_coveragert  ///
+		hyp1_monitor_coveragert  ///
+		hyp1_treat_coveragert  ///
+		hyp2_monitor_coveragert  ///
+		hyp2_treat_coveragert  ///
+		hyp3_monitor_coveragert  ///
+		hypothyreosis_coveragert  ///
+		infarction_coveragert  ///
+		infarction_treat1_coveragert  ///
+		infarction_treat2_coveragert
 
 
 	// PCA
