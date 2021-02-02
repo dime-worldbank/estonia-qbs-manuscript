@@ -2,7 +2,7 @@
 	//PCA
 
 
-	use "${constructed}/qbs-domainii_clean.dta", clear
+	use "${constructed}/qbs-domainii_clean_2019.dta", clear
 
 
 	// In the data :
@@ -38,17 +38,17 @@
 
 	// CREATE VAR WITH LOADINGS
 
-	gen 	loading = 0.40 if _n == 1
+	gen 	loading = 0.41 if _n == 1
 	replace loading = 0.07 if _n == 2
-	replace loading = 0.39 if _n == 3
-	replace loading = 0.40 if _n == 4
-	replace loading = 0.39 if _n == 5
-	replace loading = 0.10 if _n == 6
-	replace loading = 0.13 if _n == 7
-	replace loading = 0.40 if _n == 8
-	replace loading = 0.08 if _n == 9
-	replace loading = 0.11 if _n == 10
-	replace loading = 0.37 if _n == 11
+	replace loading = 0.40 if _n == 3
+	replace loading = 0.09 if _n == 4
+	replace loading = 0.40 if _n == 5
+	replace loading = 0.13 if _n == 6
+	replace loading = 0.39 if _n == 7
+	replace loading = 0.38 if _n == 8
+	replace loading = 0.39 if _n == 9
+	replace loading = 0.06 if _n == 10
+	replace loading = 0.09 if _n == 11
 
 	// CREATE VAR WITH POINT VALUE OF SCORE
 
@@ -65,11 +65,6 @@
 	replace pv = 45 	if _n == 11
 
 	//
-
-
-
-
-
 		gen 	name	= "Diabetes Type II: Monitoring"                 if  _n == 1
 		replace name 	= "Diabetes Type II: Treatment"                if _n == 2
 		replace name 	= "Hypertension Low Risk: Monitoring"          if _n == 3

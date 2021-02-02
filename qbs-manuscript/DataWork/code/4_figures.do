@@ -311,7 +311,7 @@ gr export "${output}/fig_5_pca_weights.png", replace
 // FINAL SCORES PANEL
 /////////////////////////////////////////////////////////////////////////////
 
-use "${constructed}/qbs_shrinkage.dta", clear
+use "${constructed}/qbs_shrinkage_2019.dta", clear
 
 
 gen total_den = tgtgroup_diab_monitor     +       ///

@@ -83,7 +83,7 @@ use "${constructed}/qbs-domainii_clean.dta", clear
 
 // 3. Output estimated performance to "${constructed}/qbs_shrinkage.dta"
 
-  save "${constructed}/qbs_shrinkage.dta", replace
-   use "${constructed}/qbs_shrinkage.dta", clear
+  save "${constructed}/qbs_shrinkage_2019.dta", replace
+   use "${constructed}/qbs_shrinkage_2019.dta", clear
 
 // End of dofile

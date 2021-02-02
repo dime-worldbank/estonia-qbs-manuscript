@@ -1,36 +1,30 @@
 // Load and clean the QBS data
-use "${data}/domainii_qbs.dta", clear
-  isid list, sort
+use "${data}/domainii_qbs_2019.dta", clear
+  isid list_id, sort
   set seed 428252	// Timestamp: 2020-11-05 20:13:06 UTC
   gen rand = rnormal()
   sort rand
   gen uid = "QBS" + strofreal(_n,"%03.0f")
-    
-// Rename the variables
-  ren targetgroup_diab_monitoring tgtgroup_diab_monitor
-  ren covered_diab_monitoring     covered_diab_monitor
-  ren qbs_diab_monitoring         qbs_diab_monitor
-  ren qbs_diab_medication         qbs_diab_treat
-  ren coveragert_diab_monitoring  coveragert_diab_monitor
 
-// Keep variables of interest
-  keep uid tgtgroup_diab_monitor          ///
-    covered_diab_monitor coveragert_diab_monitor qbs_diab_monitor          ///
-    tgtgroup_diab_treat covered_diab_treat coveragert_diab_treat           ///
-    tgtgroup_hyp1_monitor covered_hyp1_monitor coveragert_hyp1_monitor     ///
-    qbs_hyp1_monitor tgtgroup_hyp2_monitor covered_hyp2_monitor            ///
-    coveragert_hyp2_monitor qbs_hyp2_monitor tgtgroup_hyp3_monitor         ///
-    covered_hyp3_monitor coveragert_hyp3_monitor qbs_hyp3_monitor          ///
-    tgtgroup_hyp1_treat covered_hyp1_treat coveragert_hyp1_treat           ///
-    qbs_hyp1_treat tgtgroup_hyp2_treat covered_hyp2_treat                  ///
-    coveragert_hyp2_treat qbs_hyp2_treat tgtgroup_infarction               ///
-    covered_infarction coveragert_infarction qbs_infarction                ///
-    tgtgroup_infarction_treat1 covered_infarction_treat1                   ///
-    coveragert_infarction_treat1 qbs_infarction_treat1                     ///
-    tgtgroup_infarction_treat2 covered_infarction_treat2                   ///
-    coveragert_infarction_treat2 qbs_infarction_treat2                     ///
-    tgtgroup_hypothyreosis covered_hypothyreosis                           ///
-    coveragert_hypothyreosis qbs_hypothyreosis qbs_diab_treat total_points_domain
+  ren den_* tgtgroup_*
+ren num_* covered_*
+
+  ren tgtgroup_inf_monitor tgtgroup_infarction
+  ren covered_inf_monitor covered_infarction
+  ren coveragert_inf_monitor coveragert_infarction
+  ren qbs_inf_monitor qbs_infarction
+  ren tgtgroup_inf_treat tgtgroup_infarction_treat1
+  ren covered_inf_treat covered_infarction_treat1
+  ren coveragert_inf_treat coveragert_infarction_treat1
+  ren qbs_inf_treat qbs_infarction_treat1
+  ren tgtgroup_inf_treat2 tgtgroup_infarction_treat2
+  ren covered_inf_treat2 covered_infarction_treat2
+  ren coveragert_inf_treat2 coveragert_infarction_treat2
+  ren qbs_inf_treat2 qbs_infarction_treat2
+  ren tgtgroup_hypothyroid_monitor tgtgroup_hypothyreosis
+  ren covered_hypothyroid_monitor covered_hypothyreosis
+  ren coveragert_hypothyroid_monitor coveragert_hypothyreosis
+  ren qbs_hypothyroid_monitor qbs_hypothyreosis
 
 // Label all variables
   label var tgtgroup_diab_monitor         "Type-II Diabetes (monitor) - population eligible"
@@ -77,7 +71,7 @@ use "${data}/domainii_qbs.dta", clear
   label var covered_hypothyreosis         "Hypothyroid (monitor) - patients served"
   label var coveragert_hypothyreosis      "Hypothyroid (monitor) - coverage ratio"
   label var qbs_hypothyreosis             "Hypothyroid (monitor) - QBS points"
-  
+
 // Cleaning
 
   foreach var of varlist * {
@@ -86,20 +80,20 @@ use "${data}/domainii_qbs.dta", clear
     local label = subinstr("`label'","Ii","2",.)
     lab var `var' "`label'"
   }
-  
+
   compress
   ren *_* *[2]_*[1]
   ren *_*_* *[3]_*[1]_*[2]
-  
+
   order * , seq
-  
-  ren points_domain_total qbs_score
+
+  ren points_qbs qbs_score
 
   order uid qbs_score , first
     lab var uid "Unique ID"
 
 // Save
 
-  save "${constructed}/qbs-domainii_clean.dta", replace
+  save "${constructed}/qbs-domainii_clean_2019.dta", replace
 
 // End of dofile

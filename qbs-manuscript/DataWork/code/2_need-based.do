@@ -7,7 +7,7 @@
 */
 
 // 1. Create all variables for setting up need-based estimation
-use "${constructed}/qbs_shrinkage.dta", clear
+use "${constructed}/qbs_shrinkage_2019.dta", clear
 
   local indicators diab_monitor   ///
     diab_treat     ///
@@ -34,7 +34,7 @@ foreach indicator of local indicators {
   gen den_`indicator'     = `indicator'_tgtgroup + den_`indicator'_2      // new denominator
 
   gen `indicator'_nb  = (num_`indicator' / den_`indicator')              // Adjusted Coverage
-  
+
   local label : var lab `indicator'_coveragert
     local label = substr("`label'",1,strpos("`label'"," - "))
     local label = "`label'" + " -  Need-Based"
@@ -48,7 +48,7 @@ foreach indicator of local indicators {
 // 3. Calculate the final scores with partial credit and need-based estimation
 
   // NEW SCORES = Need-adjusted coverage * Weight from PCA
-  
+
     gen pca_diab_monitor = diab_monitor_nb * 68
     gen pca_diab_treat   = diab_treat_nb * 12
     gen pca_hyp1_m       = hyp1_monitor_nb * 66
@@ -103,21 +103,21 @@ foreach indicator of local indicators {
       p_thyroid
 
     replace total_prop_score = round(total_prop_score)
-     
+
     drop pca* p_*
-    
+
     ren new_pca_score qbs_score_nb
       lab var qbs_score_nb "Need-Based PC QBS Score"
     ren total_prop_score qbs_score_pca
       lab var qbs_score_pca "Principal-Components QBS Score"
-      
+
    order * , seq
-    
+
    order uid qbs_score* , first
      lab var uid "Unique ID"
 
 //Save dataset with James-Stein and need-based coverage rates
 
-  save "${constructed}/qbs_shrinkage.dta", replace
+  save "${constructed}/qbs_shrinkage-.dta_2019", replace
 
 // End of dofile
