@@ -118,6 +118,6 @@ foreach indicator of local indicators {
 
 //Save dataset with James-Stein and need-based coverage rates
 
-  save "${constructed}/qbs_shrinkage-.dta_2019", replace
+  save "${constructed}/qbs_shrinkage_2019", replace
 
 // End of dofile

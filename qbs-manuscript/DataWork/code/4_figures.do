@@ -225,7 +225,7 @@ tw ///
 
     // Currently in 2_need_based_estimation.do, will move after finalizing
 /////////////////////////////////////////////////////////////////////////////
-use "${constructed}/qbs_shrinkage.dta", clear
+use "${constructed}/qbs_shrinkage_2019.dta", clear
 
   // Local for indicator names
   local indicators ///
@@ -259,8 +259,8 @@ use "${constructed}/qbs_shrinkage.dta", clear
       xlab(0 "0%" .25 "25%" .5 "50%" .75 "75%" 1 "100%") ///
       ylab(0 "0%" .25 "25%" .5 "50%" .75 "75%" 1 "100%")
 
-    graph save "${output}/`i'.gph" , replace
-    local graphs "`graphs' ${output}/`i'.gph"
+    graph save "${output}/`i'_2019.gph" , replace
+    local graphs "`graphs' ${output}/`i'_2019.gph"
 
    }
 
