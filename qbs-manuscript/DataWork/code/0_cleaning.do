@@ -67,10 +67,10 @@ ren num_* covered_*
   label var covered_infarction_treat2     "Myocardial infarction (treat-2) - patients served"
   label var coveragert_infarction_treat2  "Myocardial infarction (treat-2) - coverage ratio"
   label var qbs_infarction_treat2         "Myocardial infarction (treat-2) - QBS points"
-  label var tgtgroup_hypothyreosis        "Hypothyroid (monitor) - population eligible"
-  label var covered_hypothyreosis         "Hypothyroid (monitor) - patients served"
-  label var coveragert_hypothyreosis      "Hypothyroid (monitor) - coverage ratio"
-  label var qbs_hypothyreosis             "Hypothyroid (monitor) - QBS points"
+  label var tgtgroup_hypothyreosis        "Hypothyreosis (monitor) - population eligible"
+  label var covered_hypothyreosis         "Hypothyreosis (monitor) - patients served"
+  label var coveragert_hypothyreosis      "Hypothyreosis (monitor) - coverage ratio"
+  label var qbs_hypothyreosis             "Hypothyreosis (monitor) - QBS points"
 
 // Cleaning
 

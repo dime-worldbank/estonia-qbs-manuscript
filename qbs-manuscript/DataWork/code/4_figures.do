@@ -26,30 +26,31 @@ destring year, replace
  // HISTOGRAM
  preserve
 
- keep if year == 2017 | year == 2018
+ keep if year == 2018 | year == 2019
   bys doctor_name: gen n = _N
   keep if n == 2
-  keep doctor_name register_code year qbs_points
-  drop register_code
+
+  drop if regexm(doctor_name, "Ingrid Tamm")
+  keep doctor_name  year qbs_points
   reshape wide qbs_points , i(doctor_name ) j(year)
 
-  histogram qbs_points2017,  ///
+  histogram qbs_points2018,  ///
         freq  bfcolor(gre%30) lwidth(none) gap(5) start(0) width(20) ///
         fxsize(100) fysize(25) ///
          ytitle("") xtit("")  ///
          yla(none) yscale(lstyle(none))  ///
-        xlabel(0(200)700, angle(horizontal) nogrid) xtit("QBS scores 2017", color(black))  ///
+        xlabel(0(200)700, angle(horizontal) nogrid) xtit("QBS scores 2018", color(black))  ///
         plotregion(margin(zero)) graphregion(color(white))   ///
         saving("hist_xvar", replace)
 
 
 
 
-  histogram qbs_points2018, ///
+  histogram qbs_points2019, ///
         freq bfcolor(gre%30) lwidth(none) gap(5) start(0) width(20) horizontal ///
         xtitle("") ytit("")  xscale(rev) yscale(alt) ///
         fxsize(25) fysize(100) xla(none) ///
-        ylabel(0(200)700, angle(horizontal) nogrid) xscale(lstyle(none)) ytit("QBS scores 2018", color(black))  ///
+        ylabel(0(200)700, angle(horizontal) nogrid) xscale(lstyle(none)) ytit("QBS scores 2019", color(black))  ///
         plotregion(margin(zero)) graphregion(color(white)) ///
         saving("hist_y61", replace)
 
@@ -66,11 +67,11 @@ destring year, replace
 
   // SCATTER
 
-  tw (scatter qbs_points2018 qbs_points2017 if qbs_points2017 < qbs_points2018,  ///
+  tw (scatter qbs_points2019 qbs_points2018 if qbs_points2018 < qbs_points2019,  ///
     mcolor(emerald%40) mlwidth(none) yline(512, lpattern(dash) lcolor(black)) ///
     yline(576, lpattern(dash) lcolor(black)) yla(512 "80%" 576 "90%", angle(0) ///
     labsize(small)) xla(none)  ytit("") xtit("") legend(off))  ///
-  (scatter qbs_points2018 qbs_points2017 if qbs_points2017 > qbs_points2018,  ///
+  (scatter qbs_points2019 qbs_points2018 if qbs_points2018 > qbs_points2019,  ///
   mcolor(maroon%40) mlwidth(none) legend(off) xline(792, lcolor(black))     ///
   yline(796, lcolor(black))) ///
     (line v h, lcolor(black)), graphregion(color(white)) saving("graph_y6", replace)
@@ -82,7 +83,7 @@ destring year, replace
   holes(1) rows(2)   ///
   imargin(1 1 1 1) graphregion(color(white))  ///
   saving(graphwithhistograms.gph, replace)
-  graph export "${output}/fig_1_qbs_2017_2018.png", width(4000) replace
+  graph export "${output}/fig_1_qbs_2018_2019.png", width(4000) replace
 
 restore
 
@@ -91,7 +92,7 @@ restore
   // FIGURE 1b.
   // LINE GRAPH
 
-// Distribution of QBS scores for each provider for 2017 and 2018 only
+// Distribution of QBS scores for each provider for 2017, 2018 and 2019
 use "${data}/qbs_historical_appended.dta", clear
 
 destring qbs_points, replace
@@ -103,32 +104,46 @@ preserve
 
 drop if year == 2016
 
+bys doctor_name: gen n = _N
+
+
 //Providers that perform consistently low
 gen score_512 = (qbs_points<512)
-bys doctor_name: egen sum_2017_2018 = total(score_512)
+bys doctor_name: egen sum_2017_2019 = total(score_512)
 
 // Providers that perform consistently high
 gen score_576 = (qbs_points>576)
-bys doctor_name: egen sum_2017_2018_576 = total(score_576)
+bys doctor_name: egen sum_2017_2019_576 = total(score_576)
 
 // Provides that perform consistently in the middle
 gen score_512_576 = (qbs_points>=512 & qbs_points<=576)
-bys doctor_name: egen sum_2017_2018_mid = total(score_512_576)
+bys doctor_name: egen sum_2017_2019_mid = total(score_512_576)
 
 
 bys doctor_name: gen n = _N
-line qbs_points year if n == 2 , connect(ascending)
+line qbs_points year if n == 3 , connect(ascending)
+
+gen v = 800
+gen h = 2017 if _n == 1
+replace h = 2018 if _n == 2
+replace h = 2019 if _n == 3
 /*
 line qbs_points year if n == 2 , connect(ascending) lcolor(black%20) lwidth(vthin)  xlab(2017(1)2018) ///
 ytit(QBS Score per Provider) xtit(Year) ///
 tit("QBS score trend per Provider")
 */
-tw ///
-(line qbs_points year if n == 2 & sum_2017_2018 == 2,  connect(ascending) lcolor(red%20) lwidth(vthin)  xlab(2017(1)2018) ///
-ylab(0 "0" 200 "200" 400 "400" 600 "600" 800 "800" 512 "512" 576 "576", angle(0) labgap(3)))   ///
-(line qbs_points year if n == 2 & sum_2017_2018_576 == 2, connect(ascending) lcolor(green%20) lwidth(vthin)  xlab(2017(1)2018)) ///
-(line qbs_points year if n == 2 & sum_2017_2018_mid == 2, connect(ascending) lcolor(blue%50) lwidth(vthin)  xlab(2017(1)2018))   ///
-(line qbs_points year if n == 2 & (sum_2017_2018_mid == 1 | sum_2017_2018_576 == 1 | sum_2017_2018 == 1), connect(ascending) lcolor("105 105 105") lwidth(vvthin) xlab(2017(1)2018)  ytit("") xtit(" ") xla(none)  xscale(alt) plotregion(lcolor(black))), yline(576, lwidth(thin) lcolor(black)) yline(512, lwidth(thin)  lcolor(black)) legend(off) graphregion(color(white)) xsize(3) saving(line, replace)
+tw  ///
+(line qbs_points year if n == 3 & sum_2017_2019 == 3,  connect(ascending) lcolor(red%20) lwidth(vthin)  xlab(2017(1)2019) ///
+ylab(0 "0" 200 "200" 400 "400" 600 "600" 780 "780" 512 "512" 576 "576", angle(0) labgap(3)))   ///
+(line qbs_points year if n == 3 & sum_2017_2019_576 == 3, connect(ascending) lcolor(green%20) lwidth(vthin)  xlab(2017(1)2019)) ///
+(line qbs_points year if n == 3 & inlist(sum_2017_2019_mid,3), connect(ascending) lcolor(blue%50) lwidth(vthin)  xlab(2017(1)2019))   ///
+(line qbs_points year if n == 3 & (sum_2017_2019_mid == 1 | sum_2017_2019_mid == 2 |sum_2017_2019_576 == 1 | sum_2017_2019_576 == 2 | ///
+  sum_2017_2019 == 1| sum_2017_2019 == 2),  ///
+  connect(ascending) lcolor("105 105 105") lwidth(vvthin) xlab(2017(1)2019)) ///
+(scatter v h , mcolor(none) mlwidth(none) mlabel(h) mlabsize(med) mlabcolor(black) mlabpos(12) mlabsize(small) ///
+  ytit("") xtit("") xla(none)  xscale(alt) plotregion(lcolor(black)) ///
+  yline(576, lwidth(thin) lcolor(black)) yline(512, lwidth(thin) ///
+  lcolor(black)) legend(off) graphregion(color(white)) xsize(3))
 
 gr export "${output}/figure_2_line.png", width(4000) replace
 
@@ -205,7 +220,7 @@ tw ///
     local label = subinstr("`label'"," - Coverage Ratio","",.)
 
     lowess `i'_coveragert  `i'_tgtgroup ///
-      , yline(`yline_`i'', lcolor(black)) msize(0.7) mcolor(black%30) mlc(none) ///
+      , yline(`yline_`i'', lcolor(black)) msize(0.3) mcolor(black%30) mlc(none) ///
       lineopts(lcolor(red) lwidth(thick)) ylab(0(20)100, angle(0) nogrid)    ///
     tit("`label'", size(small) color(black)) xtit("") ytit("") note("")  nodraw
 
@@ -264,10 +279,11 @@ use "${constructed}/qbs_shrinkage_2019.dta", clear
 
    }
 
- grc1leg `graphs' , c(3)
-   graph draw, ysize(6)
+ grc1leg `graphs' , c(3) graphregion(color(white))
 
-   gr export "${output}/js_nb_coverage.png", replace
+   graph draw, ysize(8)
+
+   gr export "${output}/js_nb_coverage_2019.png", width(8000) replace
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -404,7 +420,6 @@ gen total_den = tgtgroup_diab_monitor     +       ///
     gr combine scatter_orig.gph scatter_prop.gph scatter_new.gph, col(3) imargin(1) xsize(10) graphregion(color(white)) xcommon ycommon
 
     gr export "${output}/fig_6_combined_scatter.png", replace
-
 
 
 

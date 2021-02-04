@@ -26,7 +26,7 @@ foreach indicator of local indicators {
 
   egen num_`indicator'_m  = mean(`indicator'_covered)       // mean(covered)
   gen num_`indicator'_2   = num_`indicator'_m        // mean(covered) * 0.5
-  gen num_`indicator'     = `indicator'_covered + num_`indicator'_2   // new numerator
+  gen num_`indicator'     = `indicator'_covered + num_`indicator'_2   // new numerator = old num + mean(numerators for n providers)
 
 
   egen den_`indicator'_m  = mean(`indicator'_tgtgroup)    // mean(population)
@@ -94,17 +94,17 @@ foreach indicator of local indicators {
 
   // Simple partial credit
 
-    gen p_diab_monitor = diab_monitor_coveragert * 65
-    gen p_diab_treat  = diab_treat_coveragert * 10
-    gen p_hyp1_m      = hyp1_monitor_coveragert * 90
-    gen p_hyp2_m      = hyp2_monitor_coveragert * 175
-    gen p_hyp3_m      = hyp3_monitor_coveragert * 40
-    gen p_hyp1_t      = hyp1_treat_coveragert * 5
-    gen p_hyp2_t      = hyp2_treat_coveragert * 20
-    gen p_mi          = infarction_coveragert * 20
-    gen p_mi1         = infarction_treat1_coveragert * 5
-    gen p_mi2         = infarction_treat2_coveragert * 5
-    gen p_thyroid     = hypothyreosis_coveragert * 45
+    gen p_diab_monitor = diab_monitor_coveragert * 70
+    gen p_diab_treat  = diab_treat_coveragert * 12
+    gen p_hyp1_m      = hyp1_monitor_coveragert * 68
+    gen p_hyp2_m      = hyp2_monitor_coveragert * 68
+    gen p_hyp3_m      = hyp3_monitor_coveragert * 67
+    gen p_hyp1_t      = hyp1_treat_coveragert * 15
+    gen p_hyp2_t      = hyp2_treat_coveragert * 22
+    gen p_mi          = infarction_coveragert * 67
+    gen p_mi1         = infarction_treat1_coveragert * 10
+    gen p_mi2         = infarction_treat2_coveragert * 15
+    gen p_thyroid     = hypothyreosis_coveragert * 65
 
     gen total_prop_score = p_diab_monitor + ///
       p_diab_treat + ///
