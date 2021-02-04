@@ -61,7 +61,7 @@ syntax anything
 end
 
 // 2. Calculate the J-S estimators for each indicator in "${constructed}/qbs-domainii_clean.dta"
-use "${constructed}/qbs-domainii_clean.dta", clear
+use "${constructed}/qbs-domainii_clean_2019.dta", clear
 
   local indicators diab_monitor diab_treat hyp1_monitor hyp1_treat      ///
     hyp2_monitor hyp2_treat hyp3_monitor                ///

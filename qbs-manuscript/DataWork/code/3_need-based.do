@@ -47,19 +47,35 @@ foreach indicator of local indicators {
 
 // 3. Calculate the final scores with partial credit and need-based estimation
 
+/* 		NEW POINT WEIGHTS BASED ON RAW COVERAGE DATA
+
+      Loading pv diab_monitor 	= 70
+      Loading pca_diab_treat 		= 12
+      Loading pca_hyp1_m			= 68
+      Loading pca_hyp2_m 		    = 68
+      Loading pca_hyp3_m			= 67
+      Loading pca_hyp1_t			= 15
+      Loading pca_hyp2_t			= 22
+      Loading pca_mi 				= 67
+      Loading pca_mi1				= 10
+      Loading pca_mi2				= 15
+      Loading pca_thyroid			= 65
+
+*/
+
   // NEW SCORES = Need-adjusted coverage * Weight from PCA
 
-    gen pca_diab_monitor = diab_monitor_nb * 68
+    gen pca_diab_monitor = diab_monitor_nb * 70
     gen pca_diab_treat   = diab_treat_nb * 12
-    gen pca_hyp1_m       = hyp1_monitor_nb * 66
+    gen pca_hyp1_m       = hyp1_monitor_nb * 68
     gen pca_hyp2_m       = hyp2_monitor_nb * 68
-    gen pca_hyp3_m       = hyp3_monitor_nb * 66
-    gen pca_hyp1_t       = hyp1_treat_nb * 17
+    gen pca_hyp3_m       = hyp3_monitor_nb * 67
+    gen pca_hyp1_t       = hyp1_treat_nb * 15
     gen pca_hyp2_t       = hyp2_treat_nb * 22
-    gen pca_mi           = infarction_nb * 68
-    gen pca_mi1          = infarction_treat1_nb * 14
-    gen pca_mi2          = infarction_treat2_nb * 19
-    gen pca_thyroid      = hypothyreosis_nb * 63
+    gen pca_mi           = infarction_nb * 67
+    gen pca_mi1          = infarction_treat1_nb * 10
+    gen pca_mi2          = infarction_treat2_nb * 15
+    gen pca_thyroid      = hypothyreosis_nb * 65
 
     // NEW FINAL SCORES
     gen new_pca_score = pca_diab_monitor +   ///

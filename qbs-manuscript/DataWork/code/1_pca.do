@@ -17,14 +17,14 @@
 	global pcalist 			diab_monitor_coveragert  ///
 	  diab_treat_coveragert  ///
 		hyp1_monitor_coveragert  ///
-		hyp1_treat_coveragert  ///
 		hyp2_monitor_coveragert  ///
-		hyp2_treat_coveragert  ///
 		hyp3_monitor_coveragert  ///
-		hypothyreosis_coveragert  ///
+		hyp1_treat_coveragert  ///
+		hyp2_treat_coveragert  ///
 		infarction_coveragert  ///
 		infarction_treat1_coveragert  ///
-		infarction_treat2_coveragert
+		infarction_treat2_coveragert ///
+		hypothyreosis_coveragert
 
 
 	// PCA
@@ -41,14 +41,14 @@
 	gen 	loading = 0.41 if _n == 1
 	replace loading = 0.07 if _n == 2
 	replace loading = 0.40 if _n == 3
-	replace loading = 0.09 if _n == 4
-	replace loading = 0.40 if _n == 5
-	replace loading = 0.13 if _n == 6
-	replace loading = 0.39 if _n == 7
-	replace loading = 0.38 if _n == 8
-	replace loading = 0.39 if _n == 9
-	replace loading = 0.06 if _n == 10
-	replace loading = 0.09 if _n == 11
+	replace loading = 0.40 if _n == 4
+	replace loading = 0.39 if _n == 5
+	replace loading = 0.09 if _n == 6
+	replace loading = 0.13 if _n == 7
+	replace loading = 0.39 if _n == 8
+	replace loading = 0.06 if _n == 9
+	replace loading = 0.09 if _n == 10
+	replace loading = 0.38 if _n == 11
 
 	// CREATE VAR WITH POINT VALUE OF SCORE
 
@@ -75,7 +75,7 @@
 		replace name 	= "Myocardial Infarction: Monitoring"           if _n == 8
 		replace name 	= "Myocardial Infarction Beta Blockers: Treatment" if _n == 9
 		replace name 	= "Myocardial Infarction Statins: Treatment"       if _n == 10
-		replace name 	= "Hypothyroidism: Monitoring"                     if _n == 11
+		replace name 	= "Hypothyreosis: Monitoring"                     if _n == 11
 
 
 		// RESCALE WEIGHTS
@@ -91,17 +91,17 @@
 
 		/* 		NEW POINT WEIGHTS BASED ON RAW COVERAGE DATA
 
-					Loading pv diab_monitor 	= 68
+					Loading pv diab_monitor 	= 70
 					Loading pca_diab_treat 		= 12
-					Loading pca_hyp1_m			= 66
+					Loading pca_hyp1_m			= 68
 					Loading pca_hyp2_m 		    = 68
-					Loading pca_hyp3_m			= 66
-					Loading pca_hyp1_t			= 17
+					Loading pca_hyp3_m			= 67
+					Loading pca_hyp1_t			= 15
 					Loading pca_hyp2_t			= 22
-					Loading pca_mi 				= 68
-					Loading pca_mi1				= 14
-					Loading pca_mi2				= 19
-					Loading pca_thyroid			= 63
+					Loading pca_mi 				= 67
+					Loading pca_mi1				= 10
+					Loading pca_mi2				= 15
+					Loading pca_thyroid			= 65
 
 		*/
 
