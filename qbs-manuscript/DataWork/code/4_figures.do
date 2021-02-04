@@ -265,9 +265,9 @@ use "${constructed}/qbs_shrinkage_2019.dta", clear
 
     tw ///
       (scatter `i'_js `i'_coveragert ///
-        , mlwidth(none) msize(0.3) mcolor(black%30) mlc(none)) ///
+        , mlwidth(none) msize(0.2) mcolor(black%30) mlc(none)) ///
       (scatter `i'_nb `i'_coveragert ///
-        , mlwidth(none) msize(0.3) mcolor(red%60) mlc(none)) ///
+        , mlwidth(none) msize(0.2) mcolor(orange) mlc(orange)) ///
       (function x , lp(dash) lw(thin) lc(gray)) ///
     , xtit("Raw Score") legend(on order(1 "James-Stein" 2 "Need-Based")) ///
       title("`label'" , size(small)) nodraw ///
@@ -281,9 +281,9 @@ use "${constructed}/qbs_shrinkage_2019.dta", clear
 
  grc1leg `graphs' , c(3) graphregion(color(white))
 
-   graph draw, ysize(8)
+   graph draw, ysize(8) xsize(9)
 
-   gr export "${output}/js_nb_coverage_2019.png", width(8000) replace
+   gr export "${output}/js_nb_coverage_2019.png", width(10000) replace
 
 
 /////////////////////////////////////////////////////////////////////////////

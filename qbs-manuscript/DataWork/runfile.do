@@ -33,14 +33,14 @@
   // RUN CLEANING OF QBS SCORES
   do "${code}/0_cleaning.do"
 
+  // RUN PCA ANALYSIS
+  do "${code}/1_pca.do"
+
   // RUN STEIN ESTIMATION
-  do "${code}/1_james-stein.do"
+  do "${code}/2_james-stein.do"
 
   // RUN NEED-BASED ESTIMATION
-  do "${code}/2_need-based.do"
-
-  // RUN PCA ANALYSIS
-  do "${code}/3_pca.do"
+  do "${code}/3_need-based.do"
 
   // RUN ALL FIGURES FOR THE PAPER
   do "${code}/4_figures_section.do"
