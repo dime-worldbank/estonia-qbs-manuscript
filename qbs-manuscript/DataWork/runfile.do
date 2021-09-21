@@ -23,8 +23,11 @@
     global constructed  "${datawork}/constructed"
 
   // Root globals - Github
-  global code       "${github}/DataWork/code"
+    global code       "${github}/DataWork/code"
     global output   "${github}/DataWork/output"
+	
+	
+	
 
 /******************************************************************/
 // CODE TO PRODUCE ESTIMATION AND FIGURES/TABLES FOR PAPER
@@ -35,6 +38,7 @@
 
   // RUN PCA ANALYSIS
   do "${code}/1_pca.do"
+
 
   // RUN STEIN ESTIMATION
   do "${code}/2_james-stein.do"

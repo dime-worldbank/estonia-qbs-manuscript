@@ -79,13 +79,13 @@ destring year, replace
 
   // COMBINE HISTOGRAM + SCATTER
 
-  graph combine  hist_xvar.gph hist_y61.gph graph_y6.gph   ,  ///
-  holes(1) rows(2)   ///
-  imargin(1 1 1 1) graphregion(color(white))  ///
-  saving(graphwithhistograms.gph, replace)
+  graph combine  hist_xvar.gph hist_y61.gph graph_y6.gph,     ///
+  holes(1) rows(2)                                            ///
+  imargin(1 1 1 1) graphregion(color(white))                  ///
+  saving(graphwithhistograms.gph, replace)					 
   graph export "${output}/fig_1_qbs_2018_2019.png", width(4000) replace
+  
 
-restore
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -93,14 +93,13 @@ restore
   // LINE GRAPH
 
 // Distribution of QBS scores for each provider for 2017, 2018 and 2019
+
 use "${data}/qbs_historical_appended.dta", clear
 
 destring qbs_points, replace
 destring year, replace
 
 set scheme uncluttered
-
-preserve
 
 drop if year == 2016
 
@@ -147,7 +146,6 @@ ylab(0 "0" 200 "200" 400 "400" 600 "600" 780 "780" 512 "512" 576 "576", angle(0)
 
 gr export "${output}/figure_2_line.png", width(4000) replace
 
-restore
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -160,7 +158,6 @@ restore
 
 use "${data}/sampling-lists-mergedrisk.dta", replace
 
-preserve
 
 collapse (mean) Numberofrelatedillnesses (mean) list_age, by(clinic_id)
  drop if list_age < 20
@@ -178,7 +175,6 @@ tw ///
 
  graph export "${output}/fig_3_disease_burden.png" , width(4000) replace
 
- restore
 
 /////////////////////////////////////////////////////////////////////////////
  // FIGURE 3.
