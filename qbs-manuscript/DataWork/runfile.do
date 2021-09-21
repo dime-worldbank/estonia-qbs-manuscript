@@ -18,7 +18,7 @@
   }
 
   // Root globals - Box
-  global datawork       "${projectfolder}/DataWork"
+    global datawork       "${projectfolder}/DataWork"
     global data         "${datawork}/raw"
     global constructed  "${datawork}/constructed"
 

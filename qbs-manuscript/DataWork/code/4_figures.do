@@ -27,12 +27,12 @@ destring year, replace
  preserve
 
  keep if year == 2018 | year == 2019
-  bys doctor_name: gen n = _N
+  bys doctor_id_nopii: gen n = _N
   keep if n == 2
 
-  drop if regexm(doctor_name, "Ingrid Tamm")
-  keep doctor_name  year qbs_points
-  reshape wide qbs_points , i(doctor_name ) j(year)
+ 
+  keep doctor_id_nopii  year qbs_points
+  reshape wide qbs_points , i(doctor_id_nopii ) j(year)
 
   histogram qbs_points2018,  ///
         freq  bfcolor(gre%30) lwidth(none) gap(5) start(0) width(20) ///
@@ -82,10 +82,11 @@ destring year, replace
   graph combine  hist_xvar.gph hist_y61.gph graph_y6.gph,     ///
   holes(1) rows(2)                                            ///
   imargin(1 1 1 1) graphregion(color(white))                  ///
-  saving(graphwithhistograms.gph, replace)					 
+  saving(graphwithhistograms.gph, replace)		
+  
+  
   graph export "${output}/fig_1_qbs_2018_2019.png", width(4000) replace
   
-
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -103,23 +104,23 @@ set scheme uncluttered
 
 drop if year == 2016
 
-bys doctor_name: gen n = _N
+//bys doctor_id_nopii: gen n = _N
 
 
 //Providers that perform consistently low
 gen score_512 = (qbs_points<512)
-bys doctor_name: egen sum_2017_2019 = total(score_512)
+bys doctor_id_nopii: egen sum_2017_2019 = total(score_512)
 
 // Providers that perform consistently high
 gen score_576 = (qbs_points>576)
-bys doctor_name: egen sum_2017_2019_576 = total(score_576)
+bys doctor_id_nopii: egen sum_2017_2019_576 = total(score_576)
 
 // Provides that perform consistently in the middle
 gen score_512_576 = (qbs_points>=512 & qbs_points<=576)
-bys doctor_name: egen sum_2017_2019_mid = total(score_512_576)
+bys doctor_id_nopii: egen sum_2017_2019_mid = total(score_512_576)
 
 
-bys doctor_name: gen n = _N
+bys doctor_id_nopii: gen n = _N
 line qbs_points year if n == 3 , connect(ascending)
 
 gen v = 800
@@ -197,16 +198,16 @@ tw ///
    infarction_treat2     ///
    hypothyreosis
 
-  local yline_diab_monitor    76
-  local yline_diab_treat      70
-  local yline_hyp1_monitor      76
-  local yline_hyp2_monitor      73
-  local yline_hyp3_monitor      70
-  local yline_hyp1_treat      90
-  local yline_hyp2_treat      83
-  local yline_infarction       90
-  local yline_infarction_treat1    70
-  local yline_infarction_treat2   70
+  local yline_diab_monitor       76
+  local yline_diab_treat         70
+  local yline_hyp1_monitor       76
+  local yline_hyp2_monitor       73
+  local yline_hyp3_monitor       70
+  local yline_hyp1_treat         90
+  local yline_hyp2_treat         83
+  local yline_infarction         90
+  local yline_infarction_treat1  70
+  local yline_infarction_treat2  70
   local yline_hypothyreosis      90
 
   local graphs ""
@@ -216,7 +217,7 @@ tw ///
     local label = subinstr("`label'"," - Coverage Ratio","",.)
 
     lowess `i'_coveragert  `i'_tgtgroup ///
-      , yline(`yline_`i'', lcolor(black)) msize(0.3) mcolor(black%30) mlc(none) ///
+      , yline(`yline_`i'', lcolor(black)) msize(0.3) mcolor(black) mlc(none) ///
       lineopts(lcolor(red) lwidth(thick)) ylab(0(20)100, angle(0) nogrid)    ///
     tit("`label'", size(small) color(black)) xtit("") ytit("") note("")  nodraw
 
@@ -290,30 +291,30 @@ use "${constructed}/qbs_shrinkage_2019.dta", clear
 
 use "${constructed}/qbs-domainii_clean.dta", clear
 
-  label var coveragert_diab_treat      "Type-II Diabetes (treat) [12]"
-  label var coveragert_infarction_treat2   "Myocardial infarction statins (treat) [19]"
-  label var coveragert_infarction_treat1   "Myocardial infarction beta blockers (treat) [14]"
-  label var coveragert_hyp2_monitor       "Hypertension med risk (monitor) [68]"
-  label var coveragert_hyp2_treat       "Hypertension med-high risk (treat) [22]"
-  label var coveragert_hyp3_monitor     "Hypertension high risk: (monitor) [66]"
-  label var coveragert_diab_monitor    "Type-II Diabetes (monitor) [68]"
-  label var coveragert_infarction       "Myocardial infarction (monitor) [68]"
-  label var coveragert_hypothyreosis     "Hypothyroidism (monitor) [63]"
-  label var coveragert_hyp1_treat       "Hypertension all risk (treat) [22]"
-  label var coveragert_hyp1_monitor     "Hypertension low risk (monitor) [66]"
+  label var diab_treat_coveragert          "Type-II Diabetes (medication) [12]"
+  label var infarction_treat2_coveragert   "Myocardial infarction statins (medication) [15]"
+  label var infarction_treat1_coveragert   "Myocardial infarction beta blockers (medication) [10]"
+  label var hyp2_monitor_coveragert        "Hypertension med risk (monitor) [68]"
+  label var hyp2_treat_coveragert          "Hypertension med-high risk (medication) [22]"
+  label var hyp3_monitor_coveragert        "Hypertension high risk: (monitor) [67]"
+  label var diab_monitor_coveragert        "Type-II Diabetes (monitor) [70]"
+  label var infarction_coveragert          "Myocardial infarction (monitor) [67]"
+  label var hypothyreosis_coveragert       "Hypothyroidism (monitor) [65]"
+  label var hyp1_treat_coveragert          "Hypertension all risk prescription [15]"
+  label var hyp1_monitor_coveragert        "Hypertension low risk (monitor) [68]"
 
 
 
-  graph hbox     coveragert_diab_treat       coveragert_infarction_treat1   ///
-          coveragert_infarction_treat2   coveragert_hyp2_treat       ///
-          coveragert_hyp1_treat       coveragert_hypothyreosis     ///
-          coveragert_hyp3_monitor      coveragert_hyp1_monitor     ///
-          coveragert_infarction       coveragert_diab_monitor     ///
-          coveragert_hyp2_monitor ,                     ///
+  graph hbox     diab_treat_coveragert        infarction_treat1_coveragert   ///
+                 infarction_treat2_coveragert  hyp2_treat_coveragert        ///
+                 hyp1_treat_coveragert      hypothyreosis_coveragert     ///
+                 hyp3_monitor_coveragert      hyp1_monitor_coveragert    ///
+                 infarction_coveragert        diab_monitor_coveragert      ///
+                 hyp2_monitor_coveragert ,                     ///
           noout  ascat ylab(0 20 40 60 80 100, nogrid) ytit("") box(1,bfcolor(white) lcolor(black)) graphregion(color(white) lcolor(black))   ///
-          tit("") note("")
+          tit("") note("Coverage rate of hypertension all risk refers to the percentage of active ingredient based prescriptions out of all the prescriptions ""made for patients diagnosed with ICD I10-I15.") 
 
-  gr display, xsize(8)
+  gr display, xsize(10)
 
 gr export "${output}/fig_5_pca_weights.png", replace
 
@@ -326,34 +327,31 @@ gr export "${output}/fig_5_pca_weights.png", replace
 use "${constructed}/qbs_shrinkage_2019.dta", clear
 
 
-gen total_den = tgtgroup_diab_monitor     +       ///
-            tgtgroup_diab_treat         +      ///
-            tgtgroup_hyp1_monitor       +       ///
-            tgtgroup_hyp2_monitor       +       ///
-            tgtgroup_hyp3_monitor       +       ///
-            tgtgroup_hyp1_treat       +       ///
-            tgtgroup_hyp2_treat       +       ///
-            tgtgroup_infarction       +       ///
-            tgtgroup_infarction_treat1     +       ///
-            tgtgroup_infarction_treat2     +       ///
-            tgtgroup_hypothyreosis
+gen total_den = diab_monitor_tgtgroup     +       ///
+            diab_treat_tgtgroup           +      ///
+            hyp1_monitor_tgtgroup         +       ///
+            hyp2_monitor_tgtgroup         +       ///
+           hyp3_monitor_tgtgroup          +       ///
+            hyp1_treat_tgtgroup           +       ///
+            hyp2_treat_tgtgroup           +       ///
+            infarction_tgtgroup           +       ///
+            infarction_treat1_tgtgroup    +       ///
+            infarction_treat2_tgtgroup    +       ///
+           hypothyreosis_tgtgroup
 
-    gen total_num = covered_diab_monitor     +       ///
-            covered_diab_treat         +       ///
-            covered_hyp1_monitor       +       ///
-            covered_hyp2_monitor       +       ///
-            covered_hyp3_monitor       +       ///
-            covered_hyp1_treat         +       ///
-            covered_hyp2_treat         +       ///
-            covered_infarction         +       ///
-            covered_infarction_treat1     +       ///
-            covered_infarction_treat2     +       ///
-            covered_hypothyreosis
+    gen total_num = diab_monitor_covered     +       ///
+            diab_treat_covered               +       ///
+            hyp1_monitor_covered             +       ///
+            hyp2_monitor_covered             +       ///
+            hyp3_monitor_covered             +       ///
+            hyp1_treat_covered               +       ///
+            hyp2_treat_covered               +       ///
+            infarction_covered               +       ///
+            infarction_treat1_covered        +       ///
+            infarction_treat2_covered        +       ///
+           hypothyreosis_covered
 
     gen total_cov = total_num/total_den
-
-
-
 
   gen y = .
   replace y = 0   if _n == 1
@@ -363,17 +361,17 @@ gen total_den = tgtgroup_diab_monitor     +       ///
 
   // Create points to get shaded area of the graph
 
-  gen incentive_1  =  384
+  gen incentive_1 =   384
   gen incentive_2 =   432
-  gen max_points  =  602
-  gen max_domain  = 480
-  gen base    =  0
+  gen max_points  =   602
+  gen max_domain  =   480
+  gen base        =    0
 
-  gen xpoint1     = .
-  replace xpoint1  =  0   if _n == 1
-  replace xpoint1  =  1000 if _n == 2
-  replace xpoint1 =  2000 if _n == 3
-  replace xpoint1 =   8000 if _n == 4
+  gen xpoint1      = .
+  replace xpoint1  =  0     if _n == 1
+  replace xpoint1  =  1000  if _n == 2
+  replace xpoint1  =  2000  if _n == 3
+  replace xpoint1  =  8000  if _n == 4
 
   // NEW SCORES = New coverage ratio * Weight from PCA
 
@@ -382,7 +380,7 @@ gen total_den = tgtgroup_diab_monitor     +       ///
       color("143 188 143" "143 188 143" "100 149 237" "255 160 122" )     ///
       lcolor(black black black black) lwidth(thin thin thin thin))       ///
       (function y=602, range(0 8000) dropl(4000) base(0) n(1) color(black))  ///
-    (scatter total_points_domain total_den if total_den <= 8000, msize(0.3)   ///
+    (scatter qbs_score total_den if total_den <= 8000, msize(0.3)   ///
     yline(0, lcolor(black)) yline(384, lcolor(black)) yline(432, lcolor(black))  yline(480, lcolor(black))   ///
     mcolor(black) yscale(lstyle(none)) xscale(lstyle(none)) xla(none) legend(off)   ///
     yla(0 " 0 " 384 " 384 " 432 " 432 " 480 " 480 " , labsize(medium) angle(0) labgap(4)) xtit(" ")  ///
@@ -394,7 +392,7 @@ gen total_den = tgtgroup_diab_monitor     +       ///
       color("255 255 255" "143 188 143" "100 149 237" "255 160 122" )     ///
       lcolor(black black black black) lwidth(thin thin thin thin))       ///
       (function y=602, range(0 8000) dropl(4000) base(0) n(1) color(black))  ///
-    (scatter total_prop_score total_den if total_den <= 8000, msize(0.3)   ///
+    (scatter qbs_score_pca total_den if total_den <= 8000, msize(0.3)   ///
     yline(0, lcolor(black)) yline(384, lcolor(black)) yline(432, lcolor(black))  yline(480, lcolor(black))   ///
     mcolor(black) yscale(lstyle(none)) xscale(lstyle(none)) xla(none) legend(off)   ///
     yla(0 " 0 " 384 " 384 " 432 " 432 " 480 " 480 " , labsize(med) angle(0) labgap(4)) xtit(" ")  ///
@@ -406,7 +404,7 @@ gen total_den = tgtgroup_diab_monitor     +       ///
       color("255 255 255" "143 188 143" "100 149 237" "255 160 122" )     ///
       lcolor(black black black black) lwidth(thin thin thin thin)) ///
       (function y=602, range(0 8000) dropl(4000) base(0) n(1) color(black))  ///
-    (scatter new_pca_score total_den if total_den <= 8000, msize(0.3)       ///
+    (scatter qbs_score_nb total_den if total_den <= 8000, msize(0.3)       ///
     yline(0, lcolor(black)) yline(384, lcolor(black)) yline(432, lcolor(black)) yline(480, lcolor(black)) ///
     mcolor(black) yscale(lstyle(none)) xscale(lstyle(none)) xla(none)  legend(off) ///
     yla(none) xtit(" ")  ytick(0 384 432 480) ytit("")  xscale(alt)       ///
