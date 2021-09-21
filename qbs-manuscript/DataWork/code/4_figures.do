@@ -10,7 +10,7 @@
 */
 
 // Load Data
-use "${data}/qbs_historical_appended.dta", clear
+use "${constructed}/qbs_historical_appended_nopii.dta", clear
 
 destring qbs_points, replace
 destring year, replace
@@ -94,7 +94,7 @@ destring year, replace
 
 // Distribution of QBS scores for each provider for 2017, 2018 and 2019
 
-use "${data}/qbs_historical_appended.dta", clear
+use "${constructed}/qbs_historical_appended_nopii.dta", clear
 
 destring qbs_points, replace
 destring year, replace
@@ -156,21 +156,21 @@ gr export "${output}/figure_2_line.png", width(4000) replace
 // Distribution of patients with related illnesses by QBS Score
 
 
-use "${data}/sampling-lists-mergedrisk.dta", replace
+use "${constructed}/sampling-lists-mergedrisk-nopii.dta", replace
 
 
-collapse (mean) Numberofrelatedillnesses (mean) list_age, by(clinic_id)
+collapse (mean) number_chronic_illness (mean) list_age, by(clinic_id)
  drop if list_age < 20
-drop if Numberofrelatedillnesses > 15000
-format Numberofrelatedillnesses %9.0f
+drop if number_chronic_illness > 15000
+format number_chronic_illnesss %9.0f
 
   local dot jitter(3)   msize(small)
 
 
 tw ///
-  (scatter Numberofrelatedillnesses list_age if list_age < 40 , `dot' mc(olive_teal) mlwidth(none) ) ///
-  (scatter Numberofrelatedillnesses list_age if list_age >= 40 & Numberofrelatedillnesses < 500 , `dot' mc(ltblue) mlwidth(none)) ///
-  (scatter Numberofrelatedillnesses list_age if  Numberofrelatedillnesses >= 500 & list_age >= 40, `dot' mc("64 105 166") mlwidth(none) yla(, angle(0) nogrid) legend(off) xla(20(10)60)) ///
+  (scatter number_chronic_illness list_age if list_age < 40 , `dot' mc(olive_teal) mlwidth(none) ) ///
+  (scatter number_chronic_illness list_age if list_age >= 40 & number_chronic_illness < 500 , `dot' mc(ltblue) mlwidth(none)) ///
+  (scatter number_chronic_illness list_age if  number_chronic_illness >= 500 & list_age >= 40, `dot' mc("64 105 166") mlwidth(none) yla(, angle(0) nogrid) legend(off) xla(20(10)60)) ///
 , graphregion(color(white)) xtitle("Average age of patients in the practice") ytitle("Total number of ECM related illnesses")
 
  graph export "${output}/fig_3_disease_burden.png" , width(4000) replace

@@ -33,11 +33,12 @@
  replace c1 = . if missing(clinic_id)
  
  ren c1 clinic_id_nopii
+ drop clinic_id
  
- label variable clinic_id "Clinic ID anonymized"
+ label variable clinic_id_nopii "Clinic ID anonymized"
  label variable number_chronic_illness "Number of chronic illness"
  label variable list_age "Average age of patient"
  
  
- save "${constructed}/sampling-lists-mergedrisk-nopii.dta", clear
+ save "${constructed}/sampling-lists-mergedrisk-nopii.dta", replace
 
