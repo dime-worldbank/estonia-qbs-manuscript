@@ -1,65 +1,33 @@
 
-### SET-UP ----
+### SET-UP ----------------------------------------------------------------------------------------------------------
+
 
 #
-# Packages ----
+# Packages ----------------------------------------------------------------------------------------------------------
 #
-# rm(list=ls())
 
-# Make a copy of the file
-file.copy(rstudioapi::getSourceEditorContext()$path,
-          gsub('R Scripts', 'R Scripts/00_ARCHIVE', gsub('\\.R', ' - copy.R', rstudioapi::getSourceEditorContext()$path)),
-          overwrite = T, copy.date = T)
+if( !is.element("pacman", installed.packages() )){install.packages("pacman", dep= T)}
 
-
-
-# devtools::install_github("setzler/eventStudy/eventStudy")
-
-if( !is.element("pacman", installed.packages() )){
-  install.packages("pacman", dep= T)
-}
-
-pacman::p_load(tidyverse, haven, stringr, xlsx, svMisc,
-               janitor, data.table, ggplot2, stringi, dplyr,
-               foreign, labelled, fastDummies, car, arrow,
-               lubridate, scales, purrr, plotly, openxlsx, 
-               stargazer,  ggpubr, paletteer, grid, quantreg,
-               gridExtra, patchwork,cowplot, foreach, raster,
-               doBy, stringi, expss, Rmpfr, foreign, plm, AER, tidylog,
+pacman::p_load(tidyverse, haven, stringr, svMisc, janitor, data.table, ggplot2, stringi, dplyr,
+               foreign, labelled, fastDummies, car, arrow, lubridate, scales, purrr, plotly,stargazer,  ggpubr, paletteer, grid, quantreg,
+               gridExtra, patchwork,cowplot, foreach, raster, doBy, stringi, expss, Rmpfr, foreign, plm, AER, tidylog,
                fixest, lmtest, multiwayvcov, knitr, beepr, estimatr, DescTools,
-               ggtext, ggridges, psych, NLP, tm, extrafont, ggridges, 
-               collapse, knitr, tableone,
-               survival, zoo, pdftools, 
-               # survfitcox, surviminer, 
-               rdd, locfit, KernSmooth, ggpubr,
-               digest, eventStudy,
+               ggtext, ggridges, psych, NLP, tm, extrafont, ggridges,  collapse, knitr, tableone,
+               survival, zoo, pdftools, rdd, locfit, KernSmooth, ggpubr, digest, EventStudy,data.table,Gmisc,glue,htmlTable,grid,magrittr,
                update = F)
-
-
 
 ### Load fonts
 loadfonts(quiet = T)
 fonts()
 
-
-
 # Set path 
 System <- Sys.getenv(x = NULL, unset = "")
 
-
 if(Sys.info()[["user"]] == "wb539995"){
   project_path  <- "C:/Users/WB539995/WBG/Daniel Rogger - Data/ECM uptake/ECM_itt"
-  raw_2009_2019      <- "C:/Users/WB539995/WBG/Daniel Rogger - Data/raw_2009_2019"
-  raw_2019_2021      <- "C:/Users/WB539995/WBG/Daniel Rogger - Data/raw_2019_2021"
-  raw_2021      <- "C:/Users/WB539995/WBG/Daniel Rogger - Data/raw_2020"
-  raw_2022      <- "C:/Users/WB539995/WBG/Daniel Rogger - Data/raw_2022_v2"
-  raw_2022_2      <- "C:/Users/WB539995/WBG/Daniel Rogger - Data/raw_2022"
-  raw_2022_nov  <- "C:/Users/WB539995/WBG/Daniel Rogger - Data/raw_2022_Nov"
-  output        <- "C:/Users/WB539995/WBG/Daniel Rogger - Data/ECM uptake/ECM_itt/output"
-  data          <- "C:/Users/WB539995/WBG/Daniel Rogger - Data/ECM uptake/ECM_itt/data"
-  
-}else if(Sys.info()[["user"]] == "ASUS"){
-  project_path  <- "~/World_Bank/Locker/Estonia/Health/ECM (PAP)"
+}else if(Sys.info()[["user"]] == "jonas"){
+  # project_path  <- "~/World_Bank/Locker/Estonia/Health/ECM (code review)"
+  project_path  <- "/Users/jonas/Downloads/Code Review (2023 Q2)"
 }
 
 
@@ -96,7 +64,7 @@ round_flex = function(x){
 }
 
 
-
+# Function to get significance stars
 sig_stars = function(var){
   
   var = ifelse(var == '<0.001', round(0.00, 2), round(as.numeric(var), 3))
@@ -132,8 +100,6 @@ outlier_sd = function(data, var, x){
 #outlier_sd(dta, 'covid_vaccine', 3)
 
 
-
-
 # Extract coefficients from the model into a (semi-)clean LaTeX row
 extract_coeftest = function(m1, length1){
   
@@ -157,7 +123,6 @@ extract_coeftest = function(m1, length1){
     rownames(temp) = m1$term
   }
   
-  
   # length1 = 2
   # m1 = lm(var ~  class_code * ecm_include_patient, data = dta_reg)
   # m1 = coeftest(m1, cluster.vcov(m1, dta_reg$list_id, df_correction = T))
@@ -177,7 +142,6 @@ extract_coeftest = function(m1, length1){
   temp$beta = ifelse(test = temp$p_value < 0.01, yes  = paste0(temp$beta, '$^{***}$'), no = temp$beta)
   #temp$beta = ifelse(test = temp$p_value < 0.001, yes  = paste0(temp$beta, '$^{***}$'), no = temp$beta)
   
-  
   ### To long
   temp$var_clean = temp$var
   temp = gather(temp, key, beta, -c(var, var_clean, p_value, se))
@@ -186,7 +150,6 @@ extract_coeftest = function(m1, length1){
   ### Clean variable (row) names
   #temp = temp %>% mutate(across(c(var_clean), ~ paste0('\\multirow{2}{*}{', .x, '}')))
   #temp$var_clean[seq(2,nrow(temp), 2)] = ''
-  
   
   ###  Put minuses in $ signs, as otherwise they won't print correctly in LaTeX
   temp$beta = gsub('-', '$-$', temp$beta, fixed=T)
@@ -201,93 +164,21 @@ extract_coeftest = function(m1, length1){
   return(temp)
 }
 
-
 ### Mode
 Mode <- function(x, na.rm = FALSE) {
-  if(na.rm){
-    x = x[!is.na(x)]
-  }
-  
+  if(na.rm){x = x[!is.na(x)]}
   ux <- unique(x)
   return(ux[which.max(tabulate(match(x, ux)))])
 }
 
-
-#
-# KEY GLOBAL PARAMETERS
-#
-
-begin_date = 20180101  # Date of the start of the coverage
-ecm_date   = 20210601  # Date of the start of the ECM intervention
-end_date   = 20230331  # Date of the end of the coverage
-winsorize1 = 0.99  # Winsorization threshold
-
-
-
-#
-# GGPLOT THEME ----
-#
-
-
-
-theme_set(  theme_minimal() +
-              theme(
-                panel.border = element_blank(),
-                panel.background = element_blank(),
-                axis.line = element_line(),
-                axis.ticks = element_blank(),
-                axis.title.x = element_text(face = 'plain', color = 'black', size = 34, family = 'Calibiri'),
-                axis.title.y = element_text(face = 'plain', color = 'black', size = 34, family = 'Calibiri'),
-                axis.text.x  = element_text(face = 'plain', color = 'black', size = 27, family = 'Calibiri'),
-                axis.text.y  = element_text(face = 'plain', color = 'black', size = 27, family = 'Calibiri'),
-                legend.text = element_text(face = 'plain', size = 28, family = 'Calibiri'),
-                legend.title = element_text(face = 'plain', size = 40, family = 'Calibiri'),
-                legend.position = "top",
-                legend.direction  = "horizontal",
-                legend.key.height = unit(2.5, "cm"),
-                plot.background = element_rect(fill='white', color=NA), #transparent plot bg
-                #panel.grid.major.x = element_blank(), #remove major gridlines
-                #panel.grid.major.y = element_blank(), #remove major gridlines
-                panel.grid.minor.x = element_blank(), #remove minor gridlines
-                panel.grid.minor.y = element_blank(), #remove minor gridlines
-                strip.text = element_markdown(size = 20, face = 'bold'),
-                strip.background = element_rect(fill = 'white', color = NA),
-                plot.title = element_markdown(color = 'black', size = 33, hjust = 0.5, family = 'Calibiri'),
-                plot.subtitle = element_markdown(color = 'grey30', size = 25, hjust = 0.5, family = 'Calibiri'),
-                plot.caption= element_textbox_simple(color = 'black', size = 11, hjust = 0, family = 'Calibiri'),
-              )
-)
 
 
 #
 # DICTIONARY ----------------------------------------------------------------------------------------------------------
 #
 
-dict_outcomes = xlsx::read.xlsx(file.path(project_path, 'Data', 'Clean', 'Other', 'Outcome_dict.xlsx'), sheetName = 'outcomes')
-
-
-# .. print definitions (optional, for those notes) + can also ask ChatGPT nicely and it should do it
-dict_outcomes = dict_outcomes[order(dict_outcomes$order),]
-temp = dict_outcomes[dict_outcomes$var %in% vars, c('name', 'description')]
-
-for(i in 1:nrow(temp)){
-  cat(paste0('\\textbf{',temp$name[i], '} - ', temp$description[i]),', ')
-}
-
+#dict_outcomes = xlsx::read.xlsx(file.path(project_path, 'Data', 'Clean', 'Other', 'Outcome_dict.xlsx'), sheetName = 'outcomes')
 
 #
-# EXTRACT PDF PAGES -----------------------------------------------------------
-#
-
-
-input_pdf <- file.path(project_path, 'Output', 'ECM_Evaluation_Paper_08112023.pdf')
-output_pdf <- file.path(project_path, 'Output', 'ECM_Evaluation_Paper_08112023 (tables) (2).pdf')
-
-pages_to_keep = c(10:25)
-
-pdf_subset(input_pdf, output_pdf, pages = pages_to_keep)
-
-
-#
-# END OF CODE ----
+# END OF CODE ----------------------------------------------------------------------------------------------------------
 #
