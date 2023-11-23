@@ -5,80 +5,37 @@
 # SET-UP ----
 # 
 
-### Clean
-rm(list=ls())
-gc()
+
 ### Source the '00_global.R' script with required packages and functions
-
-
 if(Sys.info()[["user"]] == "wb539995"){
   # source('~/path/to/r_script/00_global.R'
 }else if(Sys.info()[["user"]] == "ASUS"){
   source(file.path(dirname(rstudioapi::getActiveDocumentContext()$path), '00_global.R'))
 }
 
-# Make a copy of the file
+### Make a copy of the file
 file.copy(rstudioapi::getSourceEditorContext()$path,
           gsub('R Scripts', 'R Scripts/00_ARCHIVE', gsub('\\.R', ' - copy.R', rstudioapi::getSourceEditorContext()$path)),
           overwrite = T, copy.date = T)
 
 
-### NOTES ----------------------------------------------
+### Initialize the log file
+write_log("Starting the data cleaning process.")
 
 
-### Move files --------------------------------------------------
-### Move files to 'diagnoses' and 'procedures' folder automatically
-
-# source_folder = 'OneDrive_1_15-8-2023 (2)'
-# files1 = list.files(file.path(project_path, 'Data', 'Raw', source_folder))
-# 
-# 
-# for(file1 in files1){
-#   
-#   if(grepl('_diag',file1)){
-#     file.copy(file.path(project_path, 'Data', 'Raw', source_folder, file1),
-#               file.path(project_path, 'Data', 'Raw', 'Diagnoses', file1))
-#     file.remove(file.path(project_path, 'Data', 'Raw', source_folder, file1))
-#   }
-#   
-#   if(grepl('_proced',file1)){
-#     file.copy(file.path(project_path, 'Data', 'Raw', source_folder, file1),
-#               file.path(project_path, 'Data', 'Raw', 'Procedures', file1))
-#     file.remove(file.path(project_path, 'Data', 'Raw', source_folder, file1))
-#   }
-#   
-# }
-
-
-### For diagnosis codes check: http://icd9.chrisendres.com/ OR https://www.icd10data.com/search?s=T51.0
-# diagnosis = fread(file.path(project_path, 'Data/Raw', 'Diagnosis_code_desc.csv'))
-
-
-### Read ID's of ECM patients to keep  ---------------------------------------------------------
 ### NOTE: Only ECM eligible for now --------------------------------------------------------
 patients =  fread(file.path(project_path, 'Data','Clean',  'ECM Inclusion', "patient_ecm_eligible.csv"))
-
 patients_id = patients$id
 
-patients_id
 
-### CHOOSE: start date from which we want to see the outcomes  --------------------------------------------------
-start_date1 = 20090101
-end_date1   = 20230331
-
-
-
-# billing = read_parquet(file.path(project_path, 'Data', 'Raw', 'Billing', 'outpatient_2009_2019_10.parquet'))
-# table(billing$TypeOfTreatment)
+write_log("Initial data read.")
+write_discrepancy_report(patients, "Initial Data")
 
 #
 # DATA CLEANING  ---------------------------------------------------------
 # 
 
-
 folder='Billing'
-
-
 
 for(folder in c('Billing', 'Diagnoses', 'Procedures')){
 
@@ -195,6 +152,10 @@ for(folder in c('Billing', 'Diagnoses', 'Procedures')){
                     ungroup() %>%
                     mutate(gender = dplyr::recode(gender, 'N' = 'Female', 'M' = 'Male')) %>% # ... recode variables as required
                     rename('id' = 'patientidencrypted') %>% dplyr::select(-c(N, N2))# ... end by renaming and removing columns
+    
+
+    
+    
     ### Checks
     # nrow(patient_demo)
     # n_distinct(patient_demo$patientidencrypted)
@@ -207,6 +168,15 @@ for(folder in c('Billing', 'Diagnoses', 'Procedures')){
     patient_ecm_eligible = fread(file.path(project_path, 'Data', 'Clean', 'ECM Inclusion', 'patient_ecm_eligible.csv')) %>% mutate(id = as.character(id))
     # patient_demo = read_parquet(file.path(project_path, 'Data', 'Clean', 'Patient_demo.parquet')) %>% mutate(id = as.character(id))
     patient_ecm_eligible_demo = left_join(patient_ecm_eligible, patient_demo)
+    
+    
+    ### x CHECK X ---------------------------------------
+    ### Create strata + age
+    patient_ecm_eligible_demo = patient_ecm_eligible_demo %>% 
+      add_column(., .after = 'class_code', strata = paste(patient_ecm_eligible_demo$list_id, patient_ecm_eligible_demo$class_code)) %>% 
+      add_column(., .after = 'dateofbirth', age  = round(as.numeric(ymd(20210601) - ymd(patient_ecm_eligible_demo$dateofbirth)) /  365.25, 0))
+    
+    
     fwrite(patient_ecm_eligible_demo, file.path(project_path, 'Data', 'Clean',  'ECM Inclusion', 'patient_ecm_eligible_demo.csv'), na = NA, row.names = F)
     
   }
