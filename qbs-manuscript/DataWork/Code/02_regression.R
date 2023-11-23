@@ -20,7 +20,7 @@ if(Sys.info()[["user"]] == "wb539995"){
 #
 # READ AND CHECK DATA ----
 #
-hospitalization = fread(file.path(data, "patient_dta_reg.csv"))
+hospitalization = fread(file.path(project_path, 'Data/ECM_uptake/Raw', "patient_dta_reg.csv"))
 
 ### Count any visit due to one of these 5 conditions
 hospitalization <- add_column(hospitalization, .after = 'i10_diag',
@@ -234,8 +234,9 @@ kable(hosp_table2, "latex", booktabs = TRUE,  digits=3)
 #
 # VARIATION COSTS ----
 #
+dim(hospitalization[hospitalization$price_procedure_times_mean > 0,])
 
-g1=ggplot(data = hospitalization[hospitalization$price_procedure_times_mean > 0],
+g1=ggplot(data = hospitalization[hospitalization$price_procedure_times_mean > 0,],
        aes(x = log(price_procedure_times_sum),
           group = treat_ecm, col = treat_ecm))+
   geom_density(size = 2, key_glyph = draw_key_path)+
