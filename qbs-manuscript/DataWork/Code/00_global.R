@@ -15,7 +15,6 @@ file.copy(rstudioapi::getSourceEditorContext()$path,
 
 # devtools::install_github("setzler/eventStudy/eventStudy")
 
-
 if( !is.element("pacman", installed.packages() )){
   install.packages("pacman", dep= T)
 }
