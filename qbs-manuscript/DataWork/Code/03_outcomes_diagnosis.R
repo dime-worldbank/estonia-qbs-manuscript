@@ -63,6 +63,9 @@ file.copy(rstudioapi::getSourceEditorContext()$path,
 ### NOTE: To check the mismatched number of outpatient and primary bills between 2009-2019 and 2019-2023 (see below) ---------
 ### 'ECM list of ID vars.xlsx' on DropBox
 
+### For diagnosis codes check: http://icd9.chrisendres.com/ OR https://www.icd10data.com/search?s=T51.0
+# diagnosis = fread(file.path(project_path, 'Data/Raw', 'Diagnosis_code_desc.csv'))
+
 
 start1 = Sys.time() # To control the runtime
 
@@ -473,7 +476,12 @@ dta_diagnosis = dta_diagnosis %>%
     pneumonia_any    =  (grepl(paste(unique(severe_codes$idc10[severe_codes$variable == 'Pneumonia']), collapse='|'), codeofdiagnos)),
     
     n_sever_diag_any    =  (myocardial_infarction_any | stroke_any | copd_any | heart_failure_any | pneumonia_any),
+
+    asthma_any      =  (grepl('J45', codeofdiagnos) & dataset == 'inpatient'),
+    diabetes_2_any  =  (grepl('E11.0|E11.1|E11.2|E11.3|E11.4|E11.5|E11.6|E11.7|E11.8|E11.9', codeofdiagnos)  & dataset == 'inpatient'),
+    hypertension_any    =  (grepl('I10|I11|I12|I13|I15', codeofdiagnos) & dataset == 'inpatient'),
     
+        
     # Additional original 'avoidable' hospitalizations
     asthma      =  (grepl('J45', codeofdiagnos) & dataset == 'inpatient'),
     diabetes_2  =  (grepl('E11.0|E11.1|E11.2|E11.3|E11.4|E11.5|E11.6|E11.7|E11.8|E11.9', codeofdiagnos)  & dataset == 'inpatient'),

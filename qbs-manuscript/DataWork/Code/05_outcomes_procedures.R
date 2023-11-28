@@ -46,6 +46,8 @@ cost_procedures = clean_names(fread(file.path(project_path, 'Data', 'Clean', 'Ot
 
 dta_procedures = read_parquet(file.path(project_path, 'Data', 'Clean', 'Procedures_all.parquet'))
 
+dim(dta_procedures)
+
 ### NOTE: Subset --------------------------------------------------------------------------------------------------------
 # dta_procedures = dta_procedures %>% filter(startoftreatment > 20210101)
 
@@ -556,22 +558,25 @@ nrow(dta_prescriptions_month)
 # temp = left_join(temp, dta_prescriptions_period_18_23 %>% rename_all(~sub("_prescription$", "", .)))
 
 
-# Read dummy dataset with correct column order
-temp = fread(file.path(project_path, 'Data/Clean/Other', 'name_order_dummy.csv'))
+#### Read dummy dataset with correct column order
+# temp = fread(file.path(project_path, 'Data/Clean/Other', 'name_order_dummy.csv'))
+
+### Combine all
+left_join(dta_diagnosis_month, left_join(dta_procedures_month, dta_prescriptions_month))
 
 
-
+### Save
 # write_parquet(left_join(dta_diagnosis_month, dta_procedures_month) %>% setcolorder(names(temp)),  
 write_parquet(left_join(dta_diagnosis_month, left_join(dta_procedures_month, dta_prescriptions_month)) ,  
-              file.path(project_path, 'Data/Clean', 'All_outcomes_month_18_23.parquet'))
+              file.path(project_path, 'Data/Clean', 'all_outcomes_month_18_23.parquet'))
 write_parquet(left_join(dta_diagnosis_year,  left_join(dta_procedures_year, dta_prescriptions_year)) ,  
-              file.path(project_path, 'Data/Clean', 'All_outcomes_year_09_23.parquet'))
+              file.path(project_path, 'Data/Clean', 'all_outcomes_year_09_23.parquet'))
 write_parquet(left_join(dta_diagnosis_year_rel,  left_join(dta_procedures_year_rel, dta_prescriptions_year_rel)) ,  
-               file.path(project_path, 'Data/Clean', 'All_outcomes_year_rel_09_23.parquet'))
+               file.path(project_path, 'Data/Clean', 'all_outcomes_year_rel_09_23.parquet'))
 write_parquet(left_join(dta_diagnosis_period_18_23,  left_join(dta_procedures_period_18_23, dta_prescriptions_period_18_23)) ,  
-              file.path(project_path, 'Data/Clean', 'All_outcomes_period_18_23.parquet'))
+              file.path(project_path, 'Data/Clean', 'all_outcomes_period_18_23.parquet'))
 write_parquet(left_join(dta_diagnosis_period_09_23, left_join(dta_procedures_period_09_23, dta_prescriptions_period_09_23)) ,  
-              file.path(project_path, 'Data/Clean', 'All_outcomes_period_09_23.parquet'))
+              file.path(project_path, 'Data/Clean', 'all_outcomes_period_09_23.parquet'))
 
 
 

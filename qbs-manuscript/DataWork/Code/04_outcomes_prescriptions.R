@@ -357,8 +357,9 @@ prescriptions_month = fsum(prescriptions %>%
                                  group_by(id, treat_period_prescription, year_prescription, year_rel_prescription, year_month_prescription)) %>% # define grouping levels
                                   mutate(
                                     p_delay = p_delay/n_prescriptions,
-                                    prescription_status = prescription_status/n_prescriptions,
-                                    mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column())))))
+                                    #  prescription_status = prescription_status/n_prescriptions,
+                                    # mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column()))))
+                                    )
 
 
 
@@ -380,9 +381,9 @@ prescriptions_year  = fsum(prescriptions %>%
                                  group_by(id, year_prescription)) %>% 
                                   mutate(
                                     p_delay = p_delay/n_prescriptions,
-                                    prescription_status = prescription_status/n_prescriptions,
-                                    mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column())))))
-
+                                    #  prescription_status = prescription_status/n_prescriptions,
+                                    # mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column()))))
+                                  )
 # Make sure all patients are there for all years
 prescriptions_year = left_join(expand_grid(id = patient_ecm_eligible$id,
                                                    prescriptions_year %>% dplyr::select(year_prescription) %>%
@@ -398,9 +399,9 @@ prescriptions_year_rel = fsum(prescriptions %>%
                                     group_by(id, year_rel_prescription)) %>% 
                                     mutate(
                                       p_delay = p_delay/n_prescriptions,
-                                      prescription_status = prescription_status/n_prescriptions,
-                                      mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column())))))
-                                    
+                                      #  prescription_status = prescription_status/n_prescriptions,
+                                      # mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column()))))
+                                    )
     
 # Make sure all patients are there for all years
 prescriptions_year_rel = left_join(expand_grid(id = patient_ecm_eligible$id,
@@ -418,9 +419,10 @@ prescriptions_period_18_23  = fsum(prescriptions %>%
                                          group_by(id, treat_period_prescription))  %>% 
                                        mutate(
                                           p_delay = p_delay/n_prescriptions,
-                                          prescription_status = prescription_status/n_prescriptions,
-                                          mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column())))))
-    
+                                          #  prescription_status = prescription_status/n_prescriptions,
+                                          # mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column()))))
+                                       )
+
 # Make sure all patients are there for all periods
 prescriptions_period_18_23 = left_join(expand_grid(id = patient_ecm_eligible$id,
                                                        prescriptions_period_18_23 %>% dplyr::select(treat_period_prescription) %>% distinct() %>% as.data.frame()) %>%
@@ -435,9 +437,10 @@ prescriptions_period_09_23  = fsum(prescriptions %>%
                                          group_by(id, treat_period_prescription)) %>% 
                                   mutate(
                                     p_delay = p_delay/n_prescriptions,
-                                    prescription_status = prescription_status/n_prescriptions,
-                                    mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column())))))
-    
+                                    #  prescription_status = prescription_status/n_prescriptions,
+                                    # mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column()))))
+                                  )
+
 # Make sure all patients are there for all periods
 prescriptions_period_09_23 = left_join(expand_grid(id = patient_ecm_eligible$id,
                                                        prescriptions_period_09_23 %>% dplyr::select(treat_period_prescription) %>% distinct() %>% as.data.frame()) %>%
