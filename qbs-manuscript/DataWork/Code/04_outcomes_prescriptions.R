@@ -19,13 +19,8 @@ file.copy(rstudioapi::getSourceEditorContext()$path,
 
 ### NOTES:  ---------------------------------------------------------------------------------------------
 
-
-
 # -> Prescription codes https://www.ravimiregister.ee/Default.aspx?pv=HumRavimid.ATCPuu&ot=C&l=en#C
 # -> See monitoring criteria also at: https://www.riigiteataja.ee/akt/125112011004
-
-
-
 
 
 #
@@ -42,16 +37,10 @@ if(anew){
   
 
   ### Read ID's of ECM patients to keep  ---------------------------------------------------------
-  patients =  fread(file.path(project_path, 'Data','Clean',  'ECM Inclusion', "patient_ecm_eligible.csv"))
+  patients =  fread(file.path(project_path, 'Data','Clean',  'ECM Inclusion', "patient_ecm_eligible_demo.csv"))
   ### NOTE: Mind that we only use PURE CONTROL sample here, not the expanded one with all patients from ECM randomized clinics
   
   patients_id = patients$id
-  
-  
-  
-  
-  # prescriptions = fread(file.path(project_path, 'Data/Raw/Prescriptions', "prescriptions_2019_2020.csv"))
-  
   
   
   #### Define start date from which we want to see the outcomes  --------------------------------------------------
@@ -61,10 +50,7 @@ if(anew){
   
   ### List all files in the relevant folder ---------------------------------------------------------------------------------------------
   files_list = list.files(file.path(project_path, 'Data', 'Raw', 'Prescriptions'), full.names = T, pattern = '.csv')
-  file = files_list[5]
-  file
-  
-  
+  file = files_list[1]
   # Read and add all the files together in a loop ---------------------------------------------------------------------------------------------
   count = 0
   
@@ -90,6 +76,9 @@ if(anew){
     ### Cleaning... ---------------------------------------------------------------------------------------------
     names(temp) = names(temp) %>% tolower() # ... names to lowercase
     
+    names(temp)
+    temp$specialtyofdoctor
+    table(temp$nameofpackaging)
     
     temp = temp %>% 
         dplyr::select(-one_of('v1')) %>% # ...remove spare columns (if they exist)
@@ -131,9 +120,6 @@ if(anew){
   
 }
  
-
- 
-
 #
 # DATA CLEANING ---------------------------------------------------------------------------------------------
 # 
@@ -141,22 +127,10 @@ if(anew){
 ### Re-read data -------------------------------------------------------------------------------------
 prescriptions_save = read_parquet(file.path(project_path, 'Data', 'Clean', paste0('Prescriptions','_all.parquet')))
 
-# table(prescriptions_save$dateofpurchase == 0, prescriptions_save$prescription_status)
-# round(pr(prescriptions_save$prescription_status),2)
-
-
 # 
 # CREATE OUTCOMES -------------------------------------------------------------------------------------------------
 #
 
-prescriptions_save %>% dim
-
-table(grepl('C02', prescriptions_save$atccode))
-table(grepl('^C02', prescriptions_save$atccode))
-
-#View(prescriptions_save[grepl('^C10', prescriptions_save$atccode),])
-temp = (prescriptions_save[grepl('C02', prescriptions_save$atccode),])
-unique(temp$atccode)
 
 ### New outcomes ----------------------------------------------------------------------------------------------------
 prescriptions = prescriptions_save %>% # slice(10^6:(2*10^6)) %>% 
@@ -234,38 +208,8 @@ prescriptions = prescriptions_save %>% # slice(10^6:(2*10^6)) %>%
                    prescription_dgn, atccode, activesubstance, 
                    codeofpackaging,nameofpackaging, numberofpackaging))  # ... remove spare columns
   
-
-
-
-### Checks
-# nrow(prescriptions)
-# pr(prescriptions$prescription_status)
-# table(prescriptions$p_key)
-# table(prescriptions$p_key_p)
-# table(prescriptions$p_other)
-# table(prescriptions$p_other_p)
-# table(prescriptions$p_r_anti_hist)
-# table(prescriptions$p_key, prescriptions$p_other)
-# table(prescriptions$p_c_calcium_blockers, prescriptions$p_c_calcium_blockers_p)
-# table(prescriptions$p_statins, prescriptions$p_statins_p)
-# table(prescriptions$p_a_diabetes, prescriptions$p_a_diabetes_p)
-# table(prescriptions$prescription_status)
-# pr(prescriptions$p_c_beta_blockers)
-# pr(prescriptions$dateofpurchase==0)
-  
-
-time_length(difftime(as.Date("2018-06-02"), as.Date("2021-06-01")), "years")  %>% abs() %>% ceiling()
-time_length(difftime(as.Date("2020-06-01"), as.Date("2021-06-01")), "years")  %>% abs() %>% ceiling()
-time_length(difftime(as.Date("2018-06-01"), as.Date("2021-05-31")), "years")  %>% abs() %>% ceiling()
-time_length(difftime(as.Date("2018-05-31"), as.Date("2021-05-31")), "years")  %>% abs() %>% ceiling()
-time_length(difftime(as.Date("2018-05-30"), as.Date("2021-05-31")), "years")  %>% abs() %>% ceiling()
-
+### Save 
 write_parquet(prescriptions, file.path(project_path, 'Data/Clean', 'dta_prescriptions_temp.parquet'))
-
-
-
-
-
 
 
 ### Clean dates -------------------------------------------------------------------------
@@ -278,35 +222,14 @@ prescriptions = prescriptions %>%
   
                       year_month_day_prescription = ymd(dateofprescription), # ... specify year-month-day (full date)
                       year_month_day_purchase = ymd(dateofpurchase), # ... specify year-month-day (full date)
-                      
                       treat_period_prescription = ifelse(year_month_day_prescription < ymd(20210601), 0, 1), # ... specify treatment period
-                      # treat_period_purchase     = ifelse(year_month_day_purchase < ymd(20210601), 0, 1), # ... specify treatment period
-                      
-                      
                       year_prescription = year(year_month_day_prescription),  # ... specify year
-                      #year_purchase = year(year_month_day_purchase),  # ... specify year
-                      
                       year_month_prescription = ifelse(is.na(year_month_day_prescription), 
                                                        NA,paste0(substr(year_month_day_prescription, 1,4), '-', substr(year_month_day_prescription, 6,7))), # ... specify year and month
-                      # year_month_purchase = ifelse(is.na(year_month_day_purchase), 
-                      #                                  NA,paste0(substr(year_month_day_purchase, 1,4), '-', substr(year_month_day_purchase, 6,7))), # ... specify year and month
-
-                      # month_prescription = month(year_month_day_prescription), # ... specify just the month
-                      # month_purchase = month(year_month_purchase), # ... specify just the month
-
-                      
-                      
                       year_rel_prescription = time_length(difftime(year_month_day_prescription, as.Date("2021-05-31")), "years") %>% sign() * # ... specify how many years before or after ECM onset
                         time_length(difftime(year_month_day_prescription, as.Date("2021-05-31")), "years") %>% abs() %>% ceiling(),
                       year_rel_prescription = ifelse(year_rel_prescription == 0, 1, year_rel_prescription), # ... change 0 to 1 in year_rel (observations on the day of ECM onset)
-
                       
-                      # year_rel_purchase = time_length(difftime(year_month_day_purchase, as.Date("2021-06-01")), "years") %>% sign() * # ... specify how many years before or after ECM onset
-                      #   time_length(difftime(year_month_day_purchase, as.Date("2021-06-01")), "years") %>% abs() %>% ceiling(),
-                      # year_rel_purchase = ifelse(year_rel_purchase == 0, 1, year_rel_purchase), # ... change 0 to 1 in year_rel (observations on the day of ECM onset)
-
-         
-                      # Also add:
                       p_delay = as.numeric(year_month_day_purchase - year_month_day_prescription)
 
                     ) %>% 
@@ -317,9 +240,6 @@ prescriptions = prescriptions %>%
 ### those occuring on the onset date (01/06/2021) to be classified into a wrong year. Applying mode of year_rel to all
 ### observations by month seems to solve the issue
 prescriptions = prescriptions %>% group_by(year_month_prescription) %>% mutate(year_rel_prescription = Mode(year_rel_prescription)) %>% ungroup()
-
-tapply(prescriptions$year_rel_prescription, prescriptions$year_month_prescription, n_distinct) %>% table
-
 
 ### NOTE: Also some year imbalance - looks like the 2014-2017, which is its own dataset in the raw data, has too few observations ----------------------
 table(prescriptions$year_prescription)/10^6
@@ -334,20 +254,13 @@ prescriptions = prescriptions %>% filter(year_prescription >= 2010)
 write_parquet(prescriptions, file.path(project_path, 'Data/Clean', 'dta_prescriptions.parquet'))
 
 
-
-
 #
 # GROUP... -----------------------------------------------------------------------------------------------------------------
 #
 
-
-### NOTE: We can summarise using group_by() and summarise_all() [as commented out], but takes up to x20 (sic!)
-### longer than fsum(), while producing EXACTLY THE SAME RESULTS (CHECKED!)
-start2 = Sys.time() # To control the runtime
-
 ### Re-read data -------------------------------------------------------------------------------------
 prescriptions = read_parquet(file.path(project_path, 'Data/Clean', 'dta_prescriptions.parquet'))
-patient_ecm_eligible = fread(file.path(project_path, 'Data', 'Clean', 'ECM Inclusion', 'patient_ecm_eligible.csv')) %>% mutate(id = as.character(id))
+patient_ecm_eligible_demo = fread(file.path(project_path, 'Data', 'Clean', 'ECM Inclusion', 'patient_ecm_eligible_demo.csv')) %>% mutate(id = as.character(id))
 
 
 # ...by month -----------------------------------------------------------------------------------------------------------------
@@ -357,14 +270,13 @@ prescriptions_month = fsum(prescriptions %>%
                                  group_by(id, treat_period_prescription, year_prescription, year_rel_prescription, year_month_prescription)) %>% # define grouping levels
                                   mutate(
                                     p_delay = p_delay/n_prescriptions,
-                                    #  prescription_status = prescription_status/n_prescriptions,
-                                    # mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column()))))
-                                    )
+                                    prescription_status = prescription_status/n_prescriptions,
+                                    mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column())))))
 
 
 
 # Make sure all patients are there for all months
-prescriptions_month = left_join(expand_grid(id = patient_ecm_eligible$id,
+prescriptions_month = left_join(expand_grid(id = patient_ecm_eligible_demo$id,
                                                 prescriptions_month %>% 
                                                     dplyr::select(treat_period_prescription, year_prescription, year_rel_prescription, year_month_prescription) %>% 
                                                     distinct() %>% as.data.frame()) %>%
@@ -381,11 +293,11 @@ prescriptions_year  = fsum(prescriptions %>%
                                  group_by(id, year_prescription)) %>% 
                                   mutate(
                                     p_delay = p_delay/n_prescriptions,
-                                    #  prescription_status = prescription_status/n_prescriptions,
-                                    # mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column()))))
-                                  )
+                                    prescription_status = prescription_status/n_prescriptions,
+                                    mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column())))))
+
 # Make sure all patients are there for all years
-prescriptions_year = left_join(expand_grid(id = patient_ecm_eligible$id,
+prescriptions_year = left_join(expand_grid(id = patient_ecm_eligible_demo$id,
                                                    prescriptions_year %>% dplyr::select(year_prescription) %>%
                                                    distinct() %>% as.data.frame()) %>%
                                      group_by(id) %>% distinct() %>% ungroup(),
@@ -399,12 +311,12 @@ prescriptions_year_rel = fsum(prescriptions %>%
                                     group_by(id, year_rel_prescription)) %>% 
                                     mutate(
                                       p_delay = p_delay/n_prescriptions,
-                                      #  prescription_status = prescription_status/n_prescriptions,
-                                      # mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column()))))
-                                    )
+                                      prescription_status = prescription_status/n_prescriptions,
+                                      mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column())))))
+                                    
     
 # Make sure all patients are there for all years
-prescriptions_year_rel = left_join(expand_grid(id = patient_ecm_eligible$id,
+prescriptions_year_rel = left_join(expand_grid(id = patient_ecm_eligible_demo$id,
                                                      prescriptions_year_rel %>% dplyr::select(year_rel_prescription) %>%
                                                       distinct() %>% as.data.frame()) %>%
                                                      group_by(id) %>% distinct() %>% ungroup(),
@@ -419,12 +331,11 @@ prescriptions_period_18_23  = fsum(prescriptions %>%
                                          group_by(id, treat_period_prescription))  %>% 
                                        mutate(
                                           p_delay = p_delay/n_prescriptions,
-                                          #  prescription_status = prescription_status/n_prescriptions,
-                                          # mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column()))))
-                                       )
-
+                                          prescription_status = prescription_status/n_prescriptions,
+                                          mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column())))))
+    
 # Make sure all patients are there for all periods
-prescriptions_period_18_23 = left_join(expand_grid(id = patient_ecm_eligible$id,
+prescriptions_period_18_23 = left_join(expand_grid(id = patient_ecm_eligible_demo$id,
                                                        prescriptions_period_18_23 %>% dplyr::select(treat_period_prescription) %>% distinct() %>% as.data.frame()) %>%
                                              group_by(id) %>% distinct() %>% ungroup(),
                                            prescriptions_period_18_23) %>% 
@@ -437,25 +348,17 @@ prescriptions_period_09_23  = fsum(prescriptions %>%
                                          group_by(id, treat_period_prescription)) %>% 
                                   mutate(
                                     p_delay = p_delay/n_prescriptions,
-                                    #  prescription_status = prescription_status/n_prescriptions,
-                                    # mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column()))))
-                                  )
-
+                                    prescription_status = prescription_status/n_prescriptions,
+                                    mutate(across(ends_with("_p"), ~ . / get(sub("_p", "", cur_column())))))
+    
 # Make sure all patients are there for all periods
-prescriptions_period_09_23 = left_join(expand_grid(id = patient_ecm_eligible$id,
+prescriptions_period_09_23 = left_join(expand_grid(id = patient_ecm_eligible_demo$id,
                                                        prescriptions_period_09_23 %>% dplyr::select(treat_period_prescription) %>% distinct() %>% as.data.frame()) %>%
                                              group_by(id) %>% distinct() %>% ungroup(),
                                            prescriptions_period_09_23) %>% 
       mutate(across(-c(id, treat_period_prescription), ~replace_na(.,0))) # 0's instead of NA's
     
     
-    
-### Checks
-dim(prescriptions_month)
-dim(prescriptions_year)
-dim(prescriptions_year_rel)
-dim(prescriptions_period_18_23)
-dim(prescriptions_period_09_23)
 
 ### Save ----
 write_parquet(prescriptions_month, file.path(project_path, 'Data/Clean', 'Prescriptions_outcomes_month_18_23.parquet')) # NOTE: On purpose, we don't need pre-2018 on a monthly basis for now
@@ -463,55 +366,6 @@ write_parquet(prescriptions_year,  file.path(project_path, 'Data/Clean', 'Prescr
 write_parquet(prescriptions_year_rel,  file.path(project_path, 'Data/Clean', 'Prescriptions_outcomes_year_rel_09_23.parquet'))
 write_parquet(prescriptions_period_18_23,  file.path(project_path, 'Data/Clean', 'Prescriptions_outcomes_period_18_23.parquet'))
 write_parquet(prescriptions_period_09_23,  file.path(project_path, 'Data/Clean', 'Prescriptions_outcomes_period_09_23.parquet'))
-
-
-end1 = Sys.time() # To control the runtime
-end1-start1
-
-
-names(prescriptions_period_18_23)    
-
-
-#
-# SCRAPBOOK ---------------------------------------------------------------------------------------------------
-#
-
-
-### % of prescriptions of different type purchases (first look)  ---------------------------------------------------------------------------------------------------
-# prescriptions %>% slice(1:100) %>% View()
-# prop.table(table(prescriptions$p_statins, prescriptions$prescription_status),1)
-# 
-# temp = prescriptions %>% filter(p_statins)
-# temp = left_join(temp, patient_ecm_eligible %>% dplyr::select(c(id, ecm_include_patient))) %>% 
-#           filter(ecm_include_patient %in% c('Control', 'Treatment'))
-# 
-# prop.table(table(temp$prescription_status, temp$ecm_include_patient),1)
-# prop.table(table(temp$prescription_status, temp$ecm_include_patient),2)
-
-
-
-# View(prescriptions %>% slice(1:10^5))
-# prescriptions = prescriptions %>% slice(1:10^5)
-
-
-### all patients in EHIF? -----------------------------------------------------------------------------------------------
-# temp =  fread(file.path(project_path, 'Data','Raw',  'Other', "family_doctor_for_each_person_n0001_n0847_20230331.csv"))
-# dim(temp)
-# n_distinct(temp$CRM_KOOD)
-# temp[1:10,]
-# 
-# 
-# temp2 =  fread(file.path(project_path, 'Data','Raw',  'Other', "non_ecm_list_patients_nopii.csv"))
-# temp3 =  fread(file.path(project_path, 'Data','Raw',  'Other', "ecm_patient_id.csv"))
-# 
-# sf(unique(temp$BPARTNER2) %in% unique(temp2$list_id))
-# sf(unique(temp$BPARTNER2) %in% unique(temp3$list_id))
-# 
-# 
-# sf(unique(temp2$list_id) %in% unique(temp$BPARTNER2))
-# sf(unique(temp3$list_id) %in% unique(temp$BPARTNER2))
-# n_distinct(temp2$ecm_patient_id) + n_distinct(temp3$PatientIDencrypted)
-
 
 
 #

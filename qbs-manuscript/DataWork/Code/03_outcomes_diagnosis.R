@@ -4,19 +4,12 @@
 # SET-UP ---------------------------------------------------------------------------------------
 # 
 
-### Clean the environment
-# rm(list=ls())
-# gc() 
-
 ### Source the '00_global.R' script with required packages and functions
-
 if(Sys.info()[["user"]] == "wb539995"){
   # source('~/path/to/r_script/00_global.R'
-}else if(Sys.info()[["user"]] == "ASUS"){
+}else if(Sys.info()[["user"]] == "jonas"){
   source(file.path(dirname(rstudioapi::getActiveDocumentContext()$path), '00_global.R'))
 }
-
-
 
 ### Make copy of the file
 file.copy(rstudioapi::getSourceEditorContext()$path,
@@ -24,143 +17,29 @@ file.copy(rstudioapi::getSourceEditorContext()$path,
           overwrite = T, copy.date = T)
 
 
-
-### NEW VARIABLES? ---------------------------------------------------------------------------------------
-
-# -> (DONE) total no. of bills
-# -> (DONE DIAGNOSIS) no. of diagnosed conditions / procedures (average / total?)
-# -> (DONE) admission type - referral by family doctor (E-T0011?)
-# -> (DONE) length of hospitalization (average + total)
-# -> (DONE) obesity (some dynamics, e.g. end of code for obesity = patient lost weight?)
-
-
-### -> 30-day survival https://www.cms.gov/medicare/quality/initiatives/hospital-quality-initiative/outcome-and-payment-measures
-### -> For exact ICD codes used in the field see 'Literature/ICD codes of acute conditions.pdf'
-### -> But those are ICD-9... to convert to ICD-10, either 
-# find an updated report (all webpages seem unaccessible)
-# a conversion .csv - downloadable doesn't contain dots, so hard to match (+ imperfect matching betwen ICD-9 and ICD-10 anyway)
-# use online tool to convert, eg: https://www.aapc.com/icd-10/codes/ (slow + imperfect)
-
-##  Outcomes: 
-# (DONE) AMI: Acute Myocardial Infarction
-# (DONE) COPD: Coronary Obstructive Pulmonary Diseases,
-# (DONE) HF: Heart Failure 
-# (DONE) PN: Pneumonia
-# (DONE) Stroke
-
-
-## Measures: 
-# 30-day risk-standardized mortality measures
-# (DONE) 30-day risk-standardized readmission measures 
-# 90-day risk-standardized complications measure
-# 30-day excess days in acute care measures	
-
-
-
-### -> Run negative binomial?
-
-
-### NOTE: To check the mismatched number of outpatient and primary bills between 2009-2019 and 2019-2023 (see below) ---------
-### 'ECM list of ID vars.xlsx' on DropBox
-
-### For diagnosis codes check: http://icd9.chrisendres.com/ OR https://www.icd10data.com/search?s=T51.0
-# diagnosis = fread(file.path(project_path, 'Data/Raw', 'Diagnosis_code_desc.csv'))
-
-
-start1 = Sys.time() # To control the runtime
-
 ### Diagnosis data ---------------------------------------------------------------------------------------
 dta_diagnosis = read_parquet(file.path(project_path, 'Data', 'Clean', 'Diagnoses_all.parquet')) %>% mutate(patientidencrypted  = as.character(patientidencrypted ))
 
-
-
-# dim(dta_diagnosis) # ~ 33 million x 12 columns
-# n_distinct(dta_diagnosis$billnr) # ~ 19.2 million
-# n_distinct(dta_diagnosis$patientidencrypted) # ~ 86,492
-# summary(dta_diagnosis$startoftreatment) # 2009-2023
-
-
 ### For diagnosis codes check: http://icd9.chrisendres.com/ OR https://www.icd10data.com/search?s=T51.0
 diagnosis_codes = fread(file.path(project_path, 'Data', 'Clean', 'Other', 'Diagnosis_code_desc.csv'))
-severe_codes = xlsx::read.xlsx(file.path(project_path, 'Data', 'Clean', 'Other', 'ICD codes of acute conditions.xlsx'), sheetIndex = 1)
+severe_codes = fread(file.path(project_path, 'Data', 'Clean', 'Other', 'ICD codes of acute conditions.csv'))
 
 
-# paste(unique(severe_codes$idc10[severe_codes$variable == 'Acute Myocardial Infarction (AMI)']), collapse = ', ')
-# paste(unique(severe_codes$idc10[severe_codes$variable == 'Heart failure']), collapse = ', ')
-# paste(unique(severe_codes$idc10[severe_codes$variable == 'Pneumonia']), collapse = ', ')
-# paste(unique(severe_codes$idc10[severe_codes$variable == 'Chronic Obstructive Pulmonary Disease (COPD)']), collapse = ', ')
-# paste(unique(severe_codes$idc10[severe_codes$variable == 'Stroke']), collapse = ', ')
-
-
-
-
-### NOTE: LEAVE ONLY PURE CONTROL, CONTROL AND TREATMENT PATIENTS (FOR NOW) ----
-patient_ecm_eligible = fread(file.path(project_path, 'Data', 'Clean', 'ECM Inclusion', 'patient_ecm_eligible.csv')) %>% mutate(id = as.character(id))
+### NOTE: ENSURE ONLY PURE CONTROL, CONTROL AND TREATMENT PATIENTS ARE KEPT (FOR NOW) ----
+# patient_ecm_eligible = fread(file.path(project_path, 'Data', 'Clean', 'ECM Inclusion', 'patient_ecm_eligible.csv')) %>% mutate(id = as.character(id))
 patient_ecm_eligible_demo = fread(file.path(project_path, 'Data', 'Clean', 'ECM Inclusion', 'patient_ecm_eligible_demo.csv')) %>% mutate(id = as.character(id))
 
-dta_diagnosis = dta_diagnosis %>% filter(patientidencrypted %in% patient_ecm_eligible$id)
-
-
-# dim(dta_diagnosis) # ~ 19.7 million x 15 columns
-# n_distinct(dta_diagnosis$billnr) # ~ 10.5 million
+dim(patient_ecm_eligible_demo)
+dta_diagnosis = dta_diagnosis %>% filter(patientidencrypted %in% patient_ecm_eligible_demo$id)
 
 
 
 #
-# TYPE + NUMBER OF DIAGNOSIS ---------------------------------------------------------------------------------------
+# EXTRACT DATE OF DEATH ---------------------------------------------------------------------------------------
 #
-
-### -> Check if 'typeofdiagnos' can be used for anything  -> 
-###  whether primary (Põhidiagnoos) or secondary diagnosis (Kaasuv) with + (primary ilness); - (recurrrent disease); 0 (diagnosis unconfirmed) 
-### -> What is 'numberofdiagnosis'? -> severity? matches last part of typeofdiagnos
-#### (e.g. all typeofdiagnos = 'Kaasuv diagnoos 2+' has 21 on 'numberofdiagnosis' -> do a table to check) -> 
-#### but some typeofdiagnos do not have a number associated with them
-
-### see: § 57 https://www.riigiteataja.ee/akt/125112011004
-
-
-table(dta_diagnosis$typeofdiagnos)
-table(dta_diagnosis$numberofdiagnosis)
-table(dta_diagnosis$typeofdiagnos, dta_diagnosis$numberofdiagnosis)
-
-
-# typeofdiagnos
-# no missings ->  table(is.na(dta_diagnosis$typeofdiagnos))
-# table(grepl('Kaasuv', dta_diagnosis$typeofdiagnos)) # 53% secondary (Kassuv), 47% primary
-# pr(grepl('\\d', dta_diagnosis$typeofdiagnos)) # 68% of typeofdiagnos don't have severity in the name itself, so need to use numberofdiagnosis
-
-
-# numberofdiagnosis
-pr(substr(dta_diagnosis$numberofdiagnosis, 1,1)) # 27% = 0   |   40% = 1   |  17% = 2
-
-### XXX ----------------
-
-#
-# DATE OF DEATH ---------------------------------------------------------------------------------------
-#
-
-### Quick check if mortality varies between ECM treatment groups -----------------------------------------------------
-# dead_id = dta_diagnosis %>% filter(dateofdeath != 0)
-# dead_id = dead_id$patientidencrypted %>% unique()
-# 
-# temp = patient_ecm_eligible %>% mutate(deceased = ifelse(id %in% dead_id, 1, 0))
-# tapply(temp$deceased, temp$ecm_include_patient, pr)
-# t.test(temp$deceased[temp$ecm_include_patient %in% c('Control', 'Treatment')] ~
-#          temp$ecm_include_patient[temp$ecm_include_patient %in% c('Control', 'Treatment')])
-# 
 
 # Discard all data before May 2021 (min. death date in the date) -> all ECM patients should be alive until then 
 dta_deaths = dta_diagnosis %>% filter(startoftreatment >= min(dta_diagnosis$dateofdeath[dta_diagnosis$dateofdeath!=0]))
-
-
-### Check if date of death unique (max of 2 unique values - 0 + actual date of death)
-# summary(dta_deaths$dateofdeath[dta_deaths$dateofdeath != 0])
-# dta_deaths = dta_deaths %>% group_by(patientidencrypted) %>% mutate(N=n_distinct(dateofdeath))
-# pr(dta_deaths$N)
-# dta_deaths = dta_deaths %>% group_by(patientidencrypted) %>% filter(dateofdeath!=0) %>% mutate(N=n_distinct(dateofdeath))
-# pr(dta_deaths$N)
-# R: Yes
-
 
 ### Assign death date to a patient (rather than individual bill). This can be done in 2 WAYS:
 dta_deaths = dta_deaths %>%
@@ -178,12 +57,6 @@ dta_deaths = dta_deaths  %>%  ungroup() %>%
           filter(dateofdeath != 0 | deathofdeath_discharge != 0)%>% 
           dplyr::select(c(patientidencrypted, dateofdeath, deathofdeath_discharge, startoftreatment_max)) %>% 
           distinct()
-
-temp_include = left_join(dta_deaths %>% rename('id'='patientidencrypted'), patient_ecm_eligible_demo)
-
-sf(dta_deaths$dateofdeath == 0)
-sf(dta_deaths$startoftreatment_max == 0)
-table(dta_deaths$dateofdeath != 0, dta_deaths$dateofdeath != 0)
 
 ### Now, there are couple of options, as the death dates are not consistent: -------------------------------------
 
@@ -254,19 +127,6 @@ dta_diagnosis = left_join(dta_diagnosis %>% dplyr::select(-c(dateofdeath)), dta_
 write_parquet(dta_diagnosis, file.path(project_path, 'Data', 'dta_diagnosis_temp.parquet'))
 
 
-### Check if now all bills start no later than 7 days after the date of death
-# dta_diagnosis$diff = as.numeric(ymd(dta_diagnosis$startoftreatment) - ymd(dta_diagnosis$dateofdeath))
-# dta_diagnosis$diff %>% summary()
-### R: Yes, max value is 7
-
-
-### Check overall mortality rate
-# temp = dta_diagnosis %>% dplyr::select(c(patientidencrypted, deceased)) %>% distinct()
-# sf(temp$deceased) # 6,845 out of 87,062 unique patients
-# pr(temp$deceased) # 7.86%
-
-
-
 ### Add to patient_ecm_eligible ----------------------------------------------
 dta_deaths_save = dta_deaths
 
@@ -285,21 +145,8 @@ dta_deaths = left_join(patient_ecm_eligible_demo,
     )
 
 
-sf(dta_deaths$ecm_include_patient)
-
-
-### Check date range
-# summary(dta_deaths$dateofdeath)
-# sf(dta_deaths$death_treat_period)
-# tapply(dta_deaths$dateofdeath,     dta_deaths$death_treat_period, summary)
-# tapply(dta_deaths$death_year_rel, dta_deaths$death_treat_period, summary)
-# R: All within the range of January 2018 - March 2023 and year relative to the ECM onset (stricly negative before and strictly positive after)
-
-
 ### Save -----
 write_parquet(dta_deaths, file.path(project_path, 'Data/Clean', 'Deaths_all.parquet'))
-
-
 
 
 ### Update IDs to keep only patients alive at the start of the intervention -------------------------------------------------------------
@@ -318,52 +165,47 @@ for(file1 in files1){
     fwrite(file.path(project_path, 'Data', 'Clean', 'ECM Inclusion', paste0(file1)), na=NA, row.names = F)
 }
 
+# Identify common columns
+common_columns = intersect(intersect(names(temp1), names(temp2)),
+                           intersect(names(temp3), names(temp4)))
 
-### Filter death dates outside the treatment period
-# dta_deaths %>%
-#   filter(dateofdeath >= ymd(20210601) | is.na(dateofdeath)) %>%
-#   filter(dateofdeath <= ymd(20230331) | is.na(dateofdeath))
+# Add missing columns to each temp data frame (if any)
+temp1[, setdiff(common_columns, names(temp1))] <- NA
+temp2[, setdiff(common_columns, names(temp2))] <- NA
+temp3[, setdiff(common_columns, names(temp3))] <- NA
+temp4[, setdiff(common_columns, names(temp4))] <- NA
 
+# Add the scenario identifier to each temporary data frame
+temp1$scenario <- 'Scenario 1'
+temp2$scenario <- 'Scenario 2'
+temp3$scenario <- 'Scenario 3'
+temp4$scenario <- 'Scenario 4'
 
+# Combine all scenarios using bind_rows from dplyr
+all_scenarios <- bind_rows(temp1, temp2, temp3, temp4)
 
-### Distributions control v. treatment
-# patient_ecm  =  fread(file.path(project_path, 'Data','Clean',  'ECM Inclusion', "patient_ecm.csv")) %>% mutate(id = as.character(id))
-# dta_deaths = left_join(dta_deaths, patient_ecm %>% dplyr::select(c(id, ecm_include_patient)))
-# tapply(dta_deaths$dateofdeath %>% is.na(), dta_deaths$ecm_include_patient, pr) # 'Survival rate': 96.4% control patients and 97.09% treatment patients
-# tapply(dta_deaths$dateofdeath, dta_deaths$ecm_include_patient, summary) # Roughly similar distributions for treatment and control
+# Count deaths in each scenario
+death_counts = all_scenarios %>%
+  group_by(scenario) %>%
+  summarize(deaths = sum(dateofdeath_final != 0))
 
+# Count deaths in raw and final datasets
+raw_deaths_count = sum(dta_deaths$dateofdeath != 0)
+final_deaths_count = sum(dta_deaths$dateofdeath != 0)
 
-# patient_eligible =  fread(file.path(project_path, 'Data','Clean',  'ECM Inclusion', "patient_eligible.csv")) %>% mutate(id = as.character(id))
-# patient_eligible = patient_eligible %>% filter(eligible_code %in% c('', 'JVP92'))
-# 
-# dta_deaths = left_join(patient_eligible, dta_deaths)
-# tapply(dta_deaths$dateofdeath %>% is.na(), dta_deaths$eligible_patient, pr) # 'Survival rate': 96.4% control patients and 97.09% treatment patients
-# tapply(dta_deaths$dateofdeath, dta_deaths$eligible_patient, summary) # Roughly similar distributions for treatment and control
+# Combine counts into a summary dataset
+summary_data = rbind(death_counts,
+                     data.frame(scenario = 'Raw Data', deaths = raw_deaths_count),
+                     data.frame(scenario = 'Final Saved Data', deaths = final_deaths_count))
 
-
-
-### Plot density
-# g1=ggplot(dta_deaths,
-#           aes(x = dateofdeath,
-#               color = ecm_include_patient, group = ecm_include_patient)) +
-#   #geom_vline(aes(xintercept = ymd(20200315)), linewidth = 1.6, linetype= 'dashed', color = 'red')
-#   geom_density()
-#   
-# ggsave(file.path(project_path, 'Figures', 'Deaths', paste0('Death dates - density (post-treatment, grouped)', ".png")),
-#        plot=g1, width = 60, height = 47, units = 'cm')
-
+# Export to CSV
+write.csv(summary_data, 'death_summary.csv', row.names = FALSE)
 
 
 
 # 
 # CREATE OUTCOMES -------------------------------------------------------------------------------------------------
 #
-
-
-
-
-
-
 ### Remove unnecessary columns
 ### NOTE: Also remove 'billnr' column. Now, this results in ~2% fewer rows 
 ### after collapsing by diagnosis code below, BUT we do ensure we have
@@ -371,84 +213,21 @@ for(file1 in files1){
 ### so by all accounts we should treat it as a single healthcare interaction
 ### even if there are sometimes >1 bill numbers. 
 
+# Reading the data
 dta_diagnosis = read_parquet(file.path(project_path, 'Data', 'dta_diagnosis_temp.parquet'))
 
-
-
+# Initial data processing
 dta_diagnosis = dta_diagnosis %>% ungroup() %>%
   dplyr::select(c(patientidencrypted, dateofdeath, deceased, dataset, startoftreatment, endoftreatment, codeofdiagnos, codeofadmissiontypeoradmitt))
 
-
-### Collapse diagnosis codes first ---------------------------------------------------------------------------------
+# Collapse diagnosis codes
 dta_diagnosis <- dta_diagnosis %>%
   group_by(across(setdiff(names(dta_diagnosis), c('codeofdiagnos')))) %>%
   summarize(codeofdiagnos = paste(codeofdiagnos, collapse = ", ")) %>% ungroup()
 
-
-
-
-# 4437311 - with start, but no end and no billnr
-# 4464733 - with start and end, but no billnr
-# 4519969 - with all start, end, and billnr
-
-# temp = dta_diagnosis %>% 
-#   group_by(across(setdiff(names(dta_diagnosis), c('endoftreatment', 'codeofdiagnos')))) %>% 
-#   mutate(N=n())
-# 
-# dim(temp)
-# sf(temp$N)
-# temp %>% filter(N>1) %>% View()
-
-
-### Checks
-# dta_diagnosis$startoftreatment %>% summary()
-# class(dta_diagnosis$codeofdiagnos)
-# R: Dates agree; code of diagnoses is of class character
-
-
-### Check for outliers
-
-### Find how many observations per patient and dataset
-# temp2 = dta_diagnosis %>% 
-#   group_by(patientidencrypted, dataset) %>%
-#   mutate(N=n()) %>% ungroup() %>% 
-#   group_by(dataset) %>% 
-#   mutate(quantile99 = quantile(N, probs = .99))
-# 
-# ### Summarize all...
-# dim(temp2)
-# summary(temp2$N)
-# 
-# ### ... and by dataset
-# tapply(temp2$N, temp2$dataset, summary)
-# tapply(temp2$N, temp2$dataset, function(x) quantile(x, probs = seq(0.99,1,.001)))
-# tapply(temp2$N, temp2$dataset, function(x) pr(quantile(x, probs = .99) < x))
-# 
-# ### Plot (remove filtering to see how much more skewed is the full distribution)
-# ggplot(temp2 %>% filter(N < quantile99),
-#        aes(x = N))+
-#   geom_histogram()+
-#   facet_wrap(~dataset, scales = 'free')+
-#   theme_bw()
-# 
-# ggsave(file.path(project_path, 'Figures', 'Checks', 'Bills per patient by dataset (99th).png'),
-#        width = 30, height = 30, unit = 'cm')
-
-
-
-
-
-start1 = Sys.time()
-
-
-### Identify relevant diagnosis codes etc. -------------------------------------------------------------------------------------
-
-table(grepl('I50',dta_diagnosis$codeofdiagnos))
-table(grepl('^I50',dta_diagnosis$codeofdiagnos))
-
+# Identify relevant diagnosis codes etc.
 dta_diagnosis = dta_diagnosis %>% 
   mutate(
-    
     # Type of visit
     n_all = T,
     n_inpatient = (dataset == 'inpatient'),
@@ -476,12 +255,7 @@ dta_diagnosis = dta_diagnosis %>%
     pneumonia_any    =  (grepl(paste(unique(severe_codes$idc10[severe_codes$variable == 'Pneumonia']), collapse='|'), codeofdiagnos)),
     
     n_sever_diag_any    =  (myocardial_infarction_any | stroke_any | copd_any | heart_failure_any | pneumonia_any),
-
-    asthma_any      =  (grepl('J45', codeofdiagnos) & dataset == 'inpatient'),
-    diabetes_2_any  =  (grepl('E11.0|E11.1|E11.2|E11.3|E11.4|E11.5|E11.6|E11.7|E11.8|E11.9', codeofdiagnos)  & dataset == 'inpatient'),
-    hypertension_any    =  (grepl('I10|I11|I12|I13|I15', codeofdiagnos) & dataset == 'inpatient'),
     
-        
     # Additional original 'avoidable' hospitalizations
     asthma      =  (grepl('J45', codeofdiagnos) & dataset == 'inpatient'),
     diabetes_2  =  (grepl('E11.0|E11.1|E11.2|E11.3|E11.4|E11.5|E11.6|E11.7|E11.8|E11.9', codeofdiagnos)  & dataset == 'inpatient'),
@@ -492,8 +266,6 @@ dta_diagnosis = dta_diagnosis %>%
     
     admit_ambulance    =  (grepl('E-T0001', codeofadmissiontypeoradmitt) & dataset == 'inpatient'), # see explanation of different admission codes here: https://www.riigiteataja.ee/akt/125112011004
     admit_referral    =  (grepl('E-T0011', codeofadmissiontypeoradmitt) & dataset == 'inpatient'), # see explanation of different admission codes here: https://www.riigiteataja.ee/akt/125112011004
-    
-    
     
     alcohol_abuse  =  (grepl('F10|Z71.4', codeofdiagnos)),
     arthritis  =  (grepl('M05|M06|M15|M16|M17|M18|M19', codeofdiagnos)),
@@ -506,9 +278,6 @@ dta_diagnosis = dta_diagnosis %>%
     hyperlipidemia  =  (grepl('E78', codeofdiagnos)),
     hypothyroidism = (grepl('E01|E02|E03|E89.0', codeofdiagnos)),
     
-    
-    # hypertensive_heart  =  (grepl('I11', codeofdiagnos)),
-    # ischemic_heart_disease  =  (grepl('I21|I22|I23|I24|I25', codeofdiagnos)),
     osteoporosis  =  (grepl('M80|M81', codeofdiagnos)),
     covid_incidence  =  (grepl('U07.1', codeofdiagnos)),
     
@@ -516,21 +285,8 @@ dta_diagnosis = dta_diagnosis %>%
     weight_low = (grepl('R63.4|R63.6|^T75.82|^X52', codeofdiagnos))
     
     )
-  # group_by(patientidencrypted, startoftreatment_month) %>%
-  # summarise_all(., sum)
-
-
-### Checks
-start1-Sys.time()
-
-# View(dta_diagnosis %>% filter(weight_low | weight_high) %>% dplyr::select(c(patientidencrypted, codeofdiagnos, weight_low,weight_high)))
-# View(dta_diagnosis %>% filter(stroke)%>% dplyr::select(c(patientidencrypted, codeofdiagnos,stroke)))
-# View(dta_diagnosis %>% filter(n_inpatient_avoid) %>% dplyr::select(c(patientidencrypted, codeofdiagnos, n_inpatient_avoid, asthma, diabetes_2, copd, hypertension, heart_failure)))
-
-
-
-
-
+# Exporting the processed data to a CSV file
+write.csv(dta_diagnosis, file = "dta_diagnosis_outcomes.csv", row.names = FALSE)
 
 ### Time difference -------------------------------------------------------------------------------------
 
@@ -572,13 +328,8 @@ dta_diagnosis = dta_diagnosis %>% ungroup() %>%
                     'readmit_90_any' = ifelse(dataset == 'inpatient' & start_diff_dataset <= 90 & !is.na(start_diff_dataset), T, F),
                     'readmit_30_severe' = ifelse(dataset == 'inpatient' & n_sever_diag == T & start_diff_dataset <= 30 & !is.na(start_diff_dataset), T, F),
                     'readmit_90_severe' = ifelse(dataset == 'inpatient' & n_sever_diag == T & start_diff_dataset <= 90 & !is.na(start_diff_dataset), T, F),
-                    
-                    # 'deceased_30_any' = ifelse(start_diff_dataset <= 30 & !is.na(start_diff_dataset), T, F),
-                    
                   ) %>% 
               relocate(c('readmit_30_any', 'readmit_90_any', 'readmit_30_severe', 'readmit_90_severe'), .after = 'start_end_diff')
-
-
 
 
 ### Final clean -------------------------------------------------------------------------------------------------
@@ -615,38 +366,13 @@ dta_diagnosis = dta_diagnosis %>% rename('id' = 'patientidencrypted') %>% mutate
 write_parquet(dta_diagnosis, file.path(project_path, 'Data/Clean', 'dta_diagnosis.parquet'))
 
 
-### Check date range
-# tapply(dta_diagnosis$year_month_day, dta_diagnosis$treat_period, summary)
-# tapply(dta_diagnosis$year_rel, dta_diagnosis$treat_period, summary)
-### R: All within the range of January 2009 - March 2023 and year relative to the ECM onset (stricly negative before and strictly positive after)
-
-
-
-
-
-
-
-
 
 #
 # GROUP... -----------------------------------------------------------------------------------------------------------------
 #
 
-# group = F
-# 
-# if(group){}
-  
-
-### NOTE: We can summarise using group_by() and summarise_all() [as commented out], but takes up to x20 (sic!)
-### longer than fsum(), while producing EXACTLY THE SAME RESULTS (CHECKED!)
-
 dta_diagnosis = read_parquet(file.path(project_path, 'Data/Clean', 'dta_diagnosis.parquet'))
-patient_ecm_eligible = fread(file.path(project_path, 'Data', 'Clean', 'ECM Inclusion', 'patient_ecm_eligible.csv')) %>% mutate(id = as.character(id))
-
-
-# View(dta_diagnosis %>% slice(1:10^5))
-# dta_diagnosis = dta_diagnosis %>% slice(1:10^5)
-
+patient_ecm_eligible_demo = fread(file.path(project_path, 'Data', 'Clean', 'ECM Inclusion', 'patient_ecm_eligible_demo.csv')) %>% mutate(id = as.character(id))
 
 
 # ...by month -----------------------------------------------------------------------------------------------------------------
@@ -662,7 +388,7 @@ dta_diagnosis_month = fsum(dta_diagnosis %>%
                               # dplyr::select(-c()) # Remove those variables not needed as total
 
 # Make sure all patients are there for all months
-dta_diagnosis_month = left_join(expand_grid(id = patient_ecm_eligible$id,
+dta_diagnosis_month = left_join(expand_grid(id = patient_ecm_eligible_demo$id,
                             dta_diagnosis_month %>% dplyr::select(treat_period, year, year_rel, year_month, month) %>% distinct() %>% as.data.frame()) %>%
                             group_by(id) %>% distinct() %>% ungroup(),
           dta_diagnosis_month)%>% 
@@ -681,7 +407,7 @@ dta_diagnosis_year  = fsum(dta_diagnosis %>%
                               ) 
 
 # Make sure all patients are there for all years
-dta_diagnosis_year = left_join(expand_grid(id = patient_ecm_eligible$id,
+dta_diagnosis_year = left_join(expand_grid(id = patient_ecm_eligible_demo$id,
                                            dta_diagnosis_year %>% dplyr::select(year) %>% distinct() %>% as.data.frame()) %>%
                                               group_by(id) %>% distinct() %>% ungroup(),
                               dta_diagnosis_year)%>% 
@@ -698,7 +424,7 @@ dta_diagnosis_year_rel = fsum(dta_diagnosis %>%
                             ) 
 
 # Make sure all patients are there for all years
-dta_diagnosis_year_rel = left_join(expand_grid(id = patient_ecm_eligible$id,
+dta_diagnosis_year_rel = left_join(expand_grid(id = patient_ecm_eligible_demo$id,
                                                dta_diagnosis_year_rel %>% dplyr::select(year_rel) %>% distinct() %>% as.data.frame()) %>%
                                  group_by(id) %>% distinct() %>% ungroup(),
                                  dta_diagnosis_year_rel)%>% 
@@ -716,7 +442,7 @@ dta_diagnosis_period_18_23  = fsum(dta_diagnosis %>%
                                 ) 
 
 # Make sure all patients are there for all periods
-dta_diagnosis_period_18_23 = left_join(expand_grid(id = patient_ecm_eligible$id,
+dta_diagnosis_period_18_23 = left_join(expand_grid(id = patient_ecm_eligible_demo$id,
                                                    dta_diagnosis_period_18_23 %>% dplyr::select(treat_period) %>% distinct() %>% as.data.frame()) %>%
                    group_by(id) %>% distinct() %>% ungroup(),
                    dta_diagnosis_period_18_23) %>% 
@@ -734,20 +460,12 @@ dta_diagnosis_period_09_23  = fsum(dta_diagnosis %>%
                                       ) 
 
 # Make sure all patients are there for all periods
-dta_diagnosis_period_09_23 = left_join(expand_grid(id = patient_ecm_eligible$id,
+dta_diagnosis_period_09_23 = left_join(expand_grid(id = patient_ecm_eligible_demo$id,
                                                    dta_diagnosis_period_09_23 %>% dplyr::select(treat_period) %>% distinct() %>% as.data.frame()) %>%
                                          group_by(id) %>% distinct() %>% ungroup(),
                                        dta_diagnosis_period_09_23) %>% 
   mutate(across(-c(id, treat_period), ~replace_na(.,0))) # 0's instead of NA's
 
-
-
-### Checks
-dim(dta_diagnosis_month)
-dim(dta_diagnosis_year)
-dim(dta_diagnosis_year_rel)
-dim(dta_diagnosis_period_18_23)
-dim(dta_diagnosis_period_09_23)
 
 ### Save ----
 write_parquet(dta_diagnosis_month, file.path(project_path, 'Data/Clean', 'Diagnoses_outcomes_month_18_23.parquet')) # NOTE: On purpose, we don't need pre-2018 on a monthly basis for now
@@ -755,189 +473,6 @@ write_parquet(dta_diagnosis_year,  file.path(project_path, 'Data/Clean', 'Diagno
 write_parquet(dta_diagnosis_year_rel,  file.path(project_path, 'Data/Clean', 'Diagnoses_outcomes_year_rel_09_23.parquet'))
 write_parquet(dta_diagnosis_period_18_23,  file.path(project_path, 'Data/Clean', 'Diagnoses_outcomes_period_18_23.parquet'))
 write_parquet(dta_diagnosis_period_09_23,  file.path(project_path, 'Data/Clean', 'Diagnoses_outcomes_period_09_23.parquet'))
-
-
-end1 = Sys.time() # To control the runtime
-start1-end1
-
-
-dta_diagnosis_year = read_parquet(file.path(project_path, 'Data/Clean', 'Diagnoses_outcomes_year_rel_09_23.parquet'))
-dta_diagnosis_period_18_23 = read_parquet(file.path(project_path, 'Data/Clean', 'Diagnoses_outcomes_period_18_23.parquet'))
-dta_diagnosis_period_09_23 = read_parquet(file.path(project_path, 'Data/Clean', 'Diagnoses_outcomes_period_09_23.parquet'))
-
-
-dim(dta_diagnosis_year)
-dim(dta_diagnosis_period_18_23)/2
-dim(dta_diagnosis_period_09_23)
-n_distinct(dta_diagnosis_period_09_23$id)
-n_distinct(dta_diagnosis_period_18_23$id)
-sf(table(dta_diagnosis_period_18_23$id))
-sf(table(dta_diagnosis_period_09_23$id))
-
-
-
-1305930/87062
-
-### Checks
-# dim(dta_diagnosis_month)
-# dim(dta_diagnosis_year)
-# sf(dta_diagnosis_month$asthma)
-# sf(dta_diagnosis_year$asthma)
-# sf(dta_diagnosis_month$n_inpatient)
-# sf(dta_diagnosis_year$n_inpatient)
-
-
-
-# ' ----
-# REST ----
-#
-
-### Dummy dataset ----
-
-
-# n = 10^6
-
-# ID and date columns
-# temp = data.frame(id = sample(1:n, n, replace = T),
-#                  month = sample(as.Date(paste0(2020, "-01-01")) + 0:11, n, replace = TRUE))
-
-# Value column corresponding to the combined diagnosis codes cells
-# temp = temp %>% mutate(value = substr(paste(sample(LETTERS, nrow(temp), replace = T), sample(LETTERS, nrow(temp), replace = T),
-#             sample(LETTERS, nrow(temp), replace = T),sample(LETTERS, nrow(temp), replace = T), sep = ','), 1, sample(c(1,3,5,7), nrow(temp), replace=T)))
-
-# Spare columns to compare run times with and without them
-# temp$var1 =  sample(10^8:9*10^8, n, replace = T)
-# temp$var2 =  sample(10^8:9*10^8, n, replace = T)
-# temp$var3 =  sample(10^8:9*10^8, n, replace = T)
-# temp$var4 =  sample(10^8:9*10^8, n, replace = T)
-# temp$var5 =  sample(10^8:9*10^8, n, replace = T)
-# temp$var6 =  sample(10^8:9*10^8, n, replace = T)
-# temp$var7 =  sample(10^8:9*10^8, n, replace = T)
-
-
-# Group
-# start1=Sys.time()
-# 
-# temp2 = temp %>% mutate(asthma = (grepl('A', value)),
-#                         broken = (grepl('B', value)),
-#                         c = (grepl('C', value)),
-#                         d = (grepl('D', value)),
-#                         e = (grepl('E', value)),
-#                         f = (grepl('F', value)),
-#                         g = (grepl('G', value)),
-#                         h = (grepl('H', value)),
-#                         i = (grepl('I', value)),
-#                         j = (grepl('J', value)),
-#                         k = (grepl('K', value)),
-#                         l = (grepl('L', value)),
-#                         m = (grepl('M', value)),
-#                         n = (grepl('N', value)),
-#                         o = (grepl('O', value)),
-#                         p = (grepl('P', value)),
-#                         r = (grepl('R', value)),
-#                         s = (grepl('S', value)),
-#                         t = (grepl('T', value)),
-#                         w = (grepl('W', value)),
-#                         x = (grepl('X', value)),
-#                         y = (grepl('Y', value)),
-#                         z = (grepl('Z', value))) %>% 
-#        dplyr::select(-c(value, starts_with('var'))) %>%
-#         group_by(id, month) %>%
-#         summarise_all(., sum)
-#   
-# end1 = Sys.time()
-# end1-start1
-
-### NOTE: Adding new columns to create in mutate() does increase the time, roughly linearly (i.e. 2x more columns = 2x longer run time)
-### NOTE: Increasing number of rows to work with does increase the time, roughly linearly  (i.e. 10x more columns = 10x longer run time)
-### NOTE: Mutating without grouping first (why did I do that in the first place???) does decrease the time, but only around 20% on 10^7 rows
-### NOTE: Adding 'spare' columns to the dataframe doesn't seem to affect the run time
-
-
-# start2=Sys.time()
-
-# temp4 = temp[temp$id == 6,]
-# temp4 = temp4 %>% ungroup()
-# temp4$id = temp4$id %>% as.character()
-
-# temp3 = temp %>% mutate(asthma = (grepl('A', value)),
-#                         broken = (grepl('B', value)),
-#                         c = (grepl('C', value)),
-#                         d = (grepl('D', value)),
-#                         e = (grepl('E', value)),
-#                         f = (grepl('F', value)),
-#                         g = (grepl('G', value)),
-#                         h = (grepl('H', value)),
-#                         i = (grepl('I', value)),
-#                         j = (grepl('J', value)),
-#                         k = (grepl('K', value)),
-#                         l = (grepl('L', value)),
-#                         m = (grepl('M', value)),
-#                         n = (grepl('N', value)),
-#                         o = (grepl('O', value)),
-#                         p = (grepl('P', value)),
-#                         r = (grepl('R', value)),
-#                         s = (grepl('S', value)),
-#                         t = (grepl('T', value)),
-#                         w = (grepl('W', value)),
-#                         x = (grepl('X', value)),
-#                         y = (grepl('Y', value)),
-#                         z = (grepl('Z', value))) %>%
-#   dplyr::select(-c(value, starts_with('var')))
-
-# temp3 = fsum(temp3 %>% group_by(id,month))
-
-
-# end1 = Sys.time()
-# end1-start2
-# 
-# 
-# 
-# temp2 = temp2[order(temp2$month),]
-# temp2 = temp2[order(temp2$id),]
-# temp2 = as.data.frame(temp2)
-# rownames(temp2) = 1:nrow(temp2)
-# 
-# temp3 = temp3[order(temp3$month),]
-# temp3 = temp3[order(temp3$id),]
-# rownames(temp3) = 1:nrow(temp3)
-# temp3 = as.data.frame(temp3)
-# 
-# identical(temp2, temp3)
-
-# '-----
-# SCRAPBOOK -----
-#
-
-
-
-### NOTE: Patient deceased (in some cases code of discharge indicates death, but 
-### there is no corresponding date of death; in those cases assume that 
-### the end of treatment date on a bill ending with a discharge code 
-### 10 (deceased) is the respective death date)
-
-
-### If date of death missing, but type of discharge as 'deceased' the assign the end of treatment as death date
-# dta_diagnosis$dateofdeath[dta_diagnosis$dateofdeath == 0 & dta_diagnosis$codeofdischargetype == 10 & !is.na(dta_diagnosis$codeofdischargetype)]  <-  dta_diagnosis$endoftreatment[dta_diagnosis$dateofdeath == 0 & dta_diagnosis$codeofdischargetype == 10 & !is.na(dta_diagnosis$codeofdischargetype)]
-# 
-# 
-# temp = dta_diagnosis$patientidencrypted[dta_diagnosis$dateofdeath == 0 & dta_diagnosis$codeofdischargetype == 10 & !is.na(dta_diagnosis$codeofdischargetype)] 
-# 
-# dta_diagnosis %>% filter(patientidencrypted %in% unique(temp)) %>% View()
-# 
-# sf( patient_ecm_eligible$ecm_include_patient[patient_ecm_eligible$id  %in% temp])
-# 
-# ### Check
-# # summary(dta_diagnosis$dateofdeath[dta_diagnosis$codeofdischargetype == 10 & !is.na(dta_diagnosis$codeofdischargetype)])
-# # R: All non-missing and ranged between 01/2018 and 05/2023
-# 
-# ### If there are bills after the date of death, then assign 0 for those discharged without 10 and end of treatment as death date otherwise
-# dta_diagnosis$dateofdeath[dta_diagnosis$dateofdeath != 0 & dta_diagnosis$startoftreatment > dta_diagnosis$dateofdeath ] = ifelse(
-#   dta_diagnosis$codeofdischargetype[dta_diagnosis$dateofdeath != 0 & dta_diagnosis$startoftreatment > dta_diagnosis$dateofdeath] == 10,
-#   dta_diagnosis$endoftreatment[dta_diagnosis$dateofdeath != 0 & dta_diagnosis$startoftreatment > dta_diagnosis$dateofdeath],
-#   0
-# )
-
 
 
 #
